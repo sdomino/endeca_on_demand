@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['sdomino']
   s.email       = ['sdomino@pagodabox.com']
-  s.homepage    = 'http://github.com/sdomino/endeca_on_demand'
+  s.homepage    = 'http://github.com/sdomino/endeca_on-demand'
   s.summary     = 'Formerly EndecaXml (endeca_xml), This gem provides an easy way for you to use the Thanx Media, Endeca On-Demand Web API'
   s.description = 'EndecaOnDemand will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.'
 
