@@ -127,7 +127,7 @@ Each object will have associated instance variables that will allow you directly
   
 == F.A.Q
 
-* Q: I'm getting a response error saying something about multiple values for model \Category\
+* Q: I'm getting a response error saying something about multiple values for model Category
   A: You are most likely trying to pass a CategoryId (CID) with DimensionValueId(s) (DVID) that don't match. The DVIDs must belong to the category passed as the CID.
 
 == TODO
