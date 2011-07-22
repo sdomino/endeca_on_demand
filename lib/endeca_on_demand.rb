@@ -185,10 +185,10 @@ class EndecaOnDemand
     unless record_set.nil?
       record = @response['RecordsSet']['Record']
       if record.instance_of?(Hash)
-        @records.push(EndecaXml::Record.new(record_set))
+        @records.push(EndecaOnDemand::Record.new(record_set))
       elsif record.instance_of?(Array)
         record.each do |record|
-          @records.push(EndecaXml::Record.new(record))
+          @records.push(EndecaOnDemand::Record.new(record))
         end
       end
     else
@@ -207,11 +207,11 @@ class EndecaOnDemand
         bread = breads['Bread']
         if bread.instance_of?(Hash)
           bread.each do |key, value|
-            @breadcrumbs.push(EndecaXml::Crumb.new(bread))
+            @breadcrumbs.push(EndecaOnDemand::Crumb.new(bread))
           end
         elsif bread.instance_of?(Array)
           bread.each do |crumb|
-            @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
+            @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
           end
         end
       elsif breads.instance_of?(Array)
@@ -220,16 +220,16 @@ class EndecaOnDemand
           if breadz.instance_of?(Hash)
             if bread.instance_of?(Hash)
               bread.each do |key, value|
-                @breadcrumbs.push(EndecaXml::Crumb.new(bread))
+                @breadcrumbs.push(EndecaOnDemand::Crumb.new(bread))
               end
             elsif bread.instance_of?(Array)
               bread.each do |crumb|
-                @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
+                @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
               end
             end
           elsif breadz.instance_of?(Array)
             bread.each do |crumb|
-              @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
+              @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
             end
           end
         end
@@ -269,11 +269,11 @@ class EndecaOnDemand
     unless @response['Dimensions'].nil?
       dimension = @response['Dimensions']['Dimension']
       if dimension.instance_of?(Hash)
-        @dimension = EndecaXml::Dimension.new(dimensions)
+        @dimension = EndecaOnDemand::Dimension.new(dimensions)
         add_dimension_values(dimension)
       elsif dimension.instance_of?(Array)
         dimension.each do |dimension|
-          @dimension = EndecaXml::Dimension.new(dimension)
+          @dimension = EndecaOnDemand::Dimension.new(dimension)
           add_dimension_values(dimension)
         end
       end
@@ -286,10 +286,10 @@ class EndecaOnDemand
   def add_dimension_values(dimension)
     unless dimension['DimensionValues'].nil?
       if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
-        @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension['DimensionValues']))
+        @dimension.dimension_values.push(EndecaOnDemand::Dimension.new(dimension['DimensionValues']))
       elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
         dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
-          @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension_value))
+          @dimension.dimension_values.push(EndecaOnDemand::Dimension.new(dimension_value))
         end
       end
       @dimensions.push(@dimension)
@@ -306,14 +306,14 @@ class EndecaOnDemand
     unless business_rules_result.nil?
       business_rules = @response['BusinessRulesResult']['BusinessRules']
       if business_rules.instance_of?(Hash)
-        business_rule = EndecaXml::Rule.new(business_rules)
+        business_rule = EndecaOnDemand::Rule.new(business_rules)
         business_rules.each do |key, value|
           add_business_rule_properties(value) if key == 'properties'
           add_business_rule_records(value) if key == 'RecordSet'
         end
       elsif business_rules.instance_of?(Array)
         @response['BusinessRulesResult']['BusinessRules']['BusinessRule'].each do |rule|
-          business_rule = EndecaXml::Rule.new(rule)
+          business_rule = EndecaOnDemand::Rule.new(rule)
           rule.each do |key, value|
             add_business_rule_properties(key) if key == 'properties'
             add_business_rule_records(key) if key == 'RecordSet'
@@ -328,12 +328,12 @@ class EndecaOnDemand
   
   # Adds an array of PROPERTIES to each BUSINESS RULE
   def add_business_rule_properties(value)
-    @business_rule.properties_array.push(EndecaXml::Rule.new(value)) unless value.nil?
+    @business_rule.properties_array.push(EndecaOnDemand::Rule.new(value)) unless value.nil?
   end
   
   # Adds an array of RECORDS to each BUSINESS RULE
   def add_business_rule_records(value)
-    @business_rule.records.push(EndecaXml::Record.new(value['Record'])) unless value.nil?
+    @business_rule.records.push(EndecaOnDemand::Record.new(value['Record'])) unless value.nil?
   end
   
   # Builds the SEARCH REPORTS and SELECTED DIMENSION VALUE IDS if included in response
@@ -366,7 +366,7 @@ class EndecaOnDemand
     @applied_search_adjustments   = search_report.fetch('AppliedSearchAdjustments')
     @suggested_search_adjustments = search_report.fetch('SuggestedSearchAdjustments')
     
-    @searchs.push(EndecaXml::Search.new(search_report.fetch('Search')))
+    @searchs.push(EndecaOnDemand::Search.new(search_report.fetch('Search')))
   end
   
   # Builds an array of SELECTED DIMENSION VALUE IDS
@@ -375,10 +375,10 @@ class EndecaOnDemand
     
     selected_dimension_value_ids = @response['AppliedFilters']['SelectedDimensionValueIds']
     if selected_dimension_value_ids.instance_of?(Hash)
-      selected_dimension_value_id = EndecaXml::DimensionValueId.new(selected_dimension_value_ids)
+      selected_dimension_value_id = EndecaOnDemand::DimensionValueId.new(selected_dimension_value_ids)
     elsif selected_dimension_value_ids.instance_of?(Array)
       selected_dimension_value_ids.each do |key, value|
-        selected_dimension_value_id = EndecaXml::DimensionValueId.new(value)
+        selected_dimension_value_id = EndecaOnDemand::DimensionValueId.new(value)
       end
     end
     @selected_dimension_value_ids.push(selected_dimension_value_id)
