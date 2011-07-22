@@ -1,6 +1,6 @@
 == EndecaOnDemand
 
-This Endeca On-Demand Web API gem will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
+This Endeca On-Demand Web API gem will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
 NOTE: There are still some features that may not work completely, see the todo list below to see what I hope to get in as I continue to work on the gem. If there is anything missing let me know.
 
@@ -16,7 +16,7 @@ NOTE: There are still some features that may not work completely, see the todo l
 
 Add this line to your Gemfile:
 
- gem 'EndecaOnDemand'
+ gem 'endeca_on_demand'
 
 Then bundle install:
 
@@ -26,7 +26,7 @@ Then bundle install:
 
 ==== Non Rails
 
- gem install EndecaOnDemand
+ gem install endeca_on_demand
 
 === Usage
 
