@@ -137,7 +137,7 @@ Each object will have associated instance variables that will allow you directly
 
 == CONTACT
 
-Please contact me with any question, bugs, suggestions, or... donations? :)
+Please contact me with any question, bugs, suggestions, etc.
 
 == Copyright
 
