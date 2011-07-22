@@ -1,6 +1,6 @@
 = EndecaOnDemand
 
-EndecaOnDemand will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
+The official unofficial Endeca On-Demand Web API gem, EndecaOnDemand will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
 == Features
 
