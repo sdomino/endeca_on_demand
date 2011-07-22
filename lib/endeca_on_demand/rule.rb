@@ -2,12 +2,12 @@ class EndecaOnDemand
   class Rule
     
     def initialize(rule)
+      @properties_array   = []
+      @records            = []
+      
       rule.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
       end
-      
-      @properties_array   = []
-      @records            = []
     end
     
     # is there anyway to do this dynamically?

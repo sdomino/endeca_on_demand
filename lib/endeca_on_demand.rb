@@ -11,11 +11,9 @@ class EndecaOnDemand
     @body = Builder::XmlMarkup.new(:indent => 2)
 
     #
-    # puts "HOST: #{host}"
     set_host(host)
     
     #
-    # puts "OPTIONS: #{options}"
     options.each do |key, value|
       self.send(key.to_sym, value) unless value.empty?
     end
@@ -26,33 +24,17 @@ class EndecaOnDemand
   
   ### API
   
-  def records
-    @records
-  end
+  attr_reader :records, :record_offset, :records_per_page, :total_record_count
+  attr_reader :breadcrumbs, :filtercrumbs
+  attr_reader :dimensions
+  attr_reader :rules
+  attr_reader :searchs, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
+  attr_reader :selected_dimension_value_ids
   
-  def breadcrumbs
-    @breadcrumbs
-  end
-  
-  def filtercrumbs
-    @filtercrumbs
-  end
-  
-  def dimensions
-    @dimensions
-  end
-  
-  def rules
-    @business_rules
-  end
-  
-  def search_reports
-    @search_reports
-  end
-  
-  def selected_dimension_value_ids
-    @selected_dimension_value_ids
-  end
+    ## DEBUG
+    attr_reader :uri, :http
+    attr_reader :base, :query, :response
+    ## /DEBUG
   
   ### /API
   
@@ -71,6 +53,8 @@ class EndecaOnDemand
     options.each do |key, value|
       @body.tag!(key, value)
     end
+    
+    @base = options
   end
   
   ## BUILD REQUEST BODY
@@ -122,17 +106,15 @@ class EndecaOnDemand
     end
   end
   
-  #
+  # Adds advanced parameters to the request.
+  # NOTE: For this implementation I only had the default advanced parameter (AggregationKey) to test with. This has not been tested, and most likely will not work, with any other possible advanced parameters (if any)
   def add_advanced_parameters(options)
-    # puts "PARAMETERS: #{options}"
     options.each do |key, value|
       @body.tag!(key, value)
     end
-    # puts @body.target!
   end
   
   # Adds UserProfile(s) to the request.
-  #TODO: test and see what happens if profiles are passed and don't exist
   def add_profiles(options)
     @body.UserProfiles do
       options.each do |profile|
@@ -161,16 +143,13 @@ class EndecaOnDemand
   
   # Completes the endeca XML reqeust by inserting the XML body into the requred 'Query' tags, and sends the request to your hosted Endeca On-Demand Web API
   def send_request
-    # insert all of the XML blocks that have been included in the request into the endeca Query XML tag
-    query = Builder::XmlMarkup.new(:indent => 2)
-    query.Query do
-      query << @body.target!
+    @query = Builder::XmlMarkup.new(:indent => 2)
+    @query.Query do
+      @query << @body.target!
     end
-
-    # puts "QUERY: #{query.target!}"
-
+    
     begin
-      request, response = @http.post(@uri.path, query.target!, 'Content-type' => 'application/xml')
+      request, response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
       handle_response(Crackoid::XML.parse(response))
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
       puts "ERROR: #{error.message}"
@@ -179,111 +158,77 @@ class EndecaOnDemand
   
   ## HANDLE RESPONSE
 
-  # get the request response and parse it into an hash
   def handle_response(response)
-    # puts "RESPONSE: #{response}"
     @response = response['Final']
-
     build_data
   end
   
   def build_data
     build_records
     build_breadcrumbs
+    build_filtercrumbs
     build_dimensions
     build_business_rules
-    build_search_reports
-    build_selected_dimension_value_ids
+    build_applied_filters
   end
   
-  # builds the RECORDS hash
+  # Builds an array of RECORDS
   def build_records
-    puts "RECORDS SET: #{@response['RecordsSet']}"
-    
-    # NOTE: this may need to be reworked a little. look in recordset for nodes that our outside of records...
     @records = []
-    unless @response['RecordsSet'].nil?
-      if @response['RecordsSet']['Record'].instance_of?(Hash)
-        @records.push(EndecaXml::Record.new(@response['RecordsSet']))
-      elsif @response['RecordsSet']['Record'].instance_of?(Array)
-        @response['RecordsSet']['Record'].each do |record|
+    
+    record_set = @response['RecordsSet']
+    
+    @record_offset = record_set.fetch('offset')
+    @records_per_page = record_set.fetch('recordsperpage')
+    @total_record_count = record_set.fetch('totalrecordcount')
+    
+    unless record_set.nil?
+      record = @response['RecordsSet']['Record']
+      if record.instance_of?(Hash)
+        @records.push(EndecaXml::Record.new(record_set))
+      elsif record.instance_of?(Array)
+        record.each do |record|
           @records.push(EndecaXml::Record.new(record))
         end
-      else
-        puts "This record is a(n): #{@response['RecordsSet'].class}"
       end
     else
       puts 'There are no records with this response!'
     end
   end
   
-  # builds the BREADCRUMBS hash
-  # TODO: one final pass on this to make sure its awesome (do i need the has for each key/values?) readdress how the filtercrumbs are handles and see if it is the best way
+  # Builds an array of BREADCRUMBS
   def build_breadcrumbs
     @breadcrumbs  = []
-    @filtercrumbs = []
     
-    # puts "BREADCRUMBS: #{@response['Breadcrumbs'}"
     breadcrumbs = @response['Breadcrumbs']
     unless breadcrumbs.nil?
-      
-      # puts "BREADS: #{@response['Breadcrumbs']['Breads']}"
       breads = @response['Breadcrumbs']['Breads']
-      
-      breads.each do |bread|
-        bread.each do |key, value|
-          @filtercrumbs.push(value)
-        end
-      end
-      
       if breads.instance_of?(Hash)
-        # puts "HASH 1: #{breads}"
-        if breads.instance_of?(Hash)
-          # puts "HASH 2: #{breads}"
-          if breads['Bread'].instance_of?(Hash)
-            # puts "HASH 2: #{breads['Bread']}"
-            breads['Bread'].each do |key, value|
-              # puts "#{key} :: #{value}"
-              @breadcrumbs.push(EndecaXml::Crumb.new(breads['Bread']))
-            end
-          elsif breads['Bread'].instance_of?(Array)
-            # puts "ARRAY 2: #{breads['Bread']}"
-            breads['Bread'].each do |crumb|
-              # puts "CRUMB 2: #{crumb}"
-              @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
-            end
+        bread = breads['Bread']
+        if bread.instance_of?(Hash)
+          bread.each do |key, value|
+            @breadcrumbs.push(EndecaXml::Crumb.new(bread))
           end
-          @filtercrumbs.push(breads['Bread'])
         elsif bread.instance_of?(Array)
-          # puts "ARRAY 1: #{breads}"
-          breads.each do |crumb|
-            # puts "CRUMB: #{crumb}"
+          bread.each do |crumb|
             @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
           end
         end
       elsif breads.instance_of?(Array)
-        # puts "ARRAY 1: #{breads}"
-        breads.each do |bread|
-          # puts "BREAD: #{bread}"
-          if bread.instance_of?(Hash)
-            # puts "HASH 1: #{bread}"
-            if bread['Bread'].instance_of?(Hash)
-              # puts "HASH 2: #{bread}"
-              bread['Bread'].each do |key, value|
-                # puts "#{key} :: #{value}"
-                @breadcrumbs.push(EndecaXml::Crumb.new(bread['Bread']))
+        breads.each do |breadz|
+          bread = breadz['Bread']
+          if breadz.instance_of?(Hash)
+            if bread.instance_of?(Hash)
+              bread.each do |key, value|
+                @breadcrumbs.push(EndecaXml::Crumb.new(bread))
               end
-            elsif bread['Bread'].instance_of?(Array)
-              # puts "ARRAY 2: #{bread}"
-              bread['Bread'].each do |crumb|
-                # puts "CRUMB 2: #{crumb}"
+            elsif bread.instance_of?(Array)
+              bread.each do |crumb|
                 @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
               end
             end
-          elsif bread.instance_of?(Array)
-            # puts "ARRAY 3: #{bread}"
-            bread['Bread'].each do |crumb|
-              # puts "CRUMB 3: #{crumb}"
+          elsif breadz.instance_of?(Array)
+            bread.each do |crumb|
               @breadcrumbs.push(EndecaXml::Crumb.new(crumb))
             end
           end
@@ -294,137 +239,149 @@ class EndecaOnDemand
     end
   end
   
-  # builds the DIMENSIONS hash
-  # NOTE: do what breadcrumbs is doing in terms of vars
+  # Builds an array of FILTERCRUMBS (BREADCRUMBS used as left nav filterables)
+  def build_filtercrumbs
+    @filtercrumbs = []
+    
+    breads = @response['Breadcrumbs']['Breads']
+    if breads.instance_of?(Hash)
+      breads.each do |key, value|
+        @filtercrumbs.push(value)
+      end
+    elsif breads.instance_of?(Array)
+      breads.each do |bread|
+        if bread.instance_of?(Hash)
+          @filtercrumbs.push(bread['Bread'])
+        elsif bread.instance_of?(Array)
+          bread['Bread'].each do |crumb|
+            @filtercrumbs.push(crumb)
+          end
+        end
+      end
+    end
+  end
+  
+  # Builds an array of DIMENSIONS
   def build_dimensions
     @dimensions = []
     
-    puts "DIMENSIONS: #{@response['Dimensions']}"
     dimensions = @response['Dimensions']
-    
     unless @response['Dimensions'].nil?
-      
-      # puts "DIMENSION: #{@response['Dimensions']['Dimension']}"
       dimension = @response['Dimensions']['Dimension']
-      
       if dimension.instance_of?(Hash)
         @dimension = EndecaXml::Dimension.new(dimensions)
-        unless dimension['DimensionValues'].nil?
-          if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
-            @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension['DimensionValues']))
-          elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
-            dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
-              @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension_value))
-            end
-          else
-            puts "This dimension value is a(n): #{dimension['DimensionValues']['DimensionValue'].class}"
-          end
-          @dimensions.push(@dimension)
-        else
-          puts "There are no dimension values on this dimension!"
-        end
+        add_dimension_values(dimension)
       elsif dimension.instance_of?(Array)
         dimension.each do |dimension|
           @dimension = EndecaXml::Dimension.new(dimension)
-          unless dimension['DimensionValues'].nil?
-            if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
-              @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension['DimensionValues']))
-            elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
-              dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
-                @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension_value))
-              end
-            else
-              puts "This dimension value is a(n): #{dimension['DimensionValues']['DimensionValue'].class}"
-            end
-            @dimensions.push(@dimension)
-          else
-            puts 'There are no dimension values on this dimension!'
-          end
+          add_dimension_values(dimension)
         end
-      else
-        puts "This dimension is a(n): #{dimensions.class}"
       end
     else
       puts 'There are no dimensions with this response!'
     end
   end
   
-  # builds the BUSINESS RULES hash
-  def build_business_rules
-    puts "BUSINESS RULES: #{@response['BusinessRulesResult']}"
-    
-    # NOTE: needs to be looked at again. look at where the array is being pushed
-    @business_rules = []
-    unless @response['BusinessRulesResult'].nil?
-      if @response['BusinessRulesResult']['BusinessRules'].instance_of?(Hash)
-        @business_rule = EndecaXml::Rule.new(@response['BusinessRulesResult']['BusinessRules'])
-        @response['BusinessRulesResult']['BusinessRules'].each do |key, value|
-          @business_rule.properties_array.push(EndecaXml::Rule.new(value)) if key == 'properties'
-          if key == 'RecordSet'
-            @business_rule.records.push(EndecaXml::Record.new(value['Record'])) unless value.nil?
-          end
+  # Adds an array of DIMENSION VALUES to each DIMENSION
+  def add_dimension_values(dimension)
+    unless dimension['DimensionValues'].nil?
+      if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
+        @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension['DimensionValues']))
+      elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
+        dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
+          @dimension.dimension_values.push(EndecaXml::Dimension.new(dimension_value))
         end
-      elsif @response['BusinessRulesResult']['BusinessRules'].instance_of?(Array)
-        @response['BusinessRulesResult']['BusinessRules']['BusinessRule'].each do |rule|
-          @business_rule = EndecaXml::Rule.new(rule)
-          rule.each do |key, value|
-            @business_rule.properties_array.push(EndecaXml::Rule.new(value)) if key == 'properties'
-            if key == 'RecordSet'
-              @business_rule.records.push(EndecaXml::Record.new(value['Record'])) unless value.nil?
-            end
-          end
-        end
-      else
-        puts "This busniess rule is a(n): #{@response['RecordsSet'].class}"
       end
-      @business_rules.push(@business_rule)
+      @dimensions.push(@dimension)
+    else
+      puts "There are no dimension values on this dimension!"
+    end
+  end
+  
+  # Builds an array of BUSINESS RULES
+  def build_business_rules
+    @business_rules = []
+    
+    business_rules_result = @response['BusinessRulesResult']
+    unless business_rules_result.nil?
+      business_rules = @response['BusinessRulesResult']['BusinessRules']
+      if business_rules.instance_of?(Hash)
+        business_rule = EndecaXml::Rule.new(business_rules)
+        business_rules.each do |key, value|
+          add_business_rule_properties(value) if key == 'properties'
+          add_business_rule_records(value) if key == 'RecordSet'
+        end
+      elsif business_rules.instance_of?(Array)
+        @response['BusinessRulesResult']['BusinessRules']['BusinessRule'].each do |rule|
+          business_rule = EndecaXml::Rule.new(rule)
+          rule.each do |key, value|
+            add_business_rule_properties(key) if key == 'properties'
+            add_business_rule_records(key) if key == 'RecordSet'
+          end
+        end
+      end
+      @business_rules.push(business_rule)
     else
       puts 'There are no business rules with this response!'
     end
   end
   
-  # builds the SEARCH REPORTS hash
-  def build_search_reports
-    @search_reports = []
-    
-    # puts "APPLIED FILTERS: #{@response['AppliedFilters']}"
-    applied_filters = @response['AppliedFilters']
-    unless applied_filters.nil?
-      
-      # puts "SEARCH REPORTS: #{@response['AppliedFilters']['SearchReports']}"
-      search_reports = @response['AppliedFilters']['SearchReports']
-      unless search_reports.nil?
-        #do stuff
+  # Adds an array of PROPERTIES to each BUSINESS RULE
+  def add_business_rule_properties(value)
+    @business_rule.properties_array.push(EndecaXml::Rule.new(value)) unless value.nil?
+  end
+  
+  # Adds an array of RECORDS to each BUSINESS RULE
+  def add_business_rule_records(value)
+    @business_rule.records.push(EndecaXml::Record.new(value['Record'])) unless value.nil?
+  end
+  
+  # Builds the SEARCH REPORTS and SELECTED DIMENSION VALUE IDS if included in response
+  def build_applied_filters
+    unless @response['AppliedFilters'].nil?
+      unless @response['AppliedFilters']['SearchReports'].nil?
+        build_search_reports
       else
         puts 'There are no search reports with this response!'
       end
-      
+      unless @response['AppliedFilters']['SelectedDimensionValueIds'].nil?
+        build_selected_dimension_value_ids
+      else
+        puts "There are no selected dimension value ids with this response!"
+      end
     else
       puts 'There were not applied filters with this response!'
     end
   end
   
-  # builds the SELECTED DIMENSION VALUE IDS hash
+  # Builds an array of SEARCH REPORTS
+  def build_search_reports
+    @searchs = []
+    
+    search_report = @response['AppliedFilters']['SearchReports']['SearchReport']
+    
+    @matchedrecordcount           = search_report.fetch('matchedrecordcount')
+    @matchedmode                  = search_report.fetch('matchmode')
+    @matchedtermscount            = search_report.fetch('matchedtermscount')
+    @applied_search_adjustments   = search_report.fetch('AppliedSearchAdjustments')
+    @suggested_search_adjustments = search_report.fetch('SuggestedSearchAdjustments')
+    
+    @searchs.push(EndecaXml::Search.new(search_report.fetch('Search')))
+  end
+  
+  # Builds an array of SELECTED DIMENSION VALUE IDS
   def build_selected_dimension_value_ids
     @selected_dimension_value_ids = []
     
-    # puts "SELECTED DIMENSION VALUE IDS: #{@response['AppliedFilters']['SelectedDimensionValueIds']}"
     selected_dimension_value_ids = @response['AppliedFilters']['SelectedDimensionValueIds']
-    unless selected_dimension_value_ids.nil?
-      
-      if selected_dimension_value_ids.instance_of?(Hash)
-        selected_dimension_value_id = EndecaXml::DimensionValueId.new(selected_dimension_value_ids)
-      elsif selected_dimension_value_ids.instance_of?(Array)
-        selected_dimension_value_ids.each do |key, value|
-          selected_dimension_value_id = EndecaXml::DimensionValueId.new(value)
-        end
+    if selected_dimension_value_ids.instance_of?(Hash)
+      selected_dimension_value_id = EndecaXml::DimensionValueId.new(selected_dimension_value_ids)
+    elsif selected_dimension_value_ids.instance_of?(Array)
+      selected_dimension_value_ids.each do |key, value|
+        selected_dimension_value_id = EndecaXml::DimensionValueId.new(value)
       end
-      
-      @selected_dimension_value_ids.push(selected_dimension_value_id)
-      
-    else
-      puts "There are no selected dimension value ids with this response!"
     end
+    @selected_dimension_value_ids.push(selected_dimension_value_id)
   end
   
 end

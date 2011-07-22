@@ -2,9 +2,7 @@ class EndecaOnDemand
   class Record
 
     def initialize(record)
-      # puts "RECORD: #{record}"
       record.each do |key, value|
-        # puts "#{key} | #{value}"
         self.instance_variable_set(:"@#{key.downcase}", value)
       end
     end

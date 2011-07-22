@@ -1,16 +1,18 @@
-= EndecaOnDemand
+== EndecaOnDemand
 
-The official unofficial Endeca On-Demand Web API gem, EndecaOnDemand will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
+This Endeca On-Demand Web API gem will take a query-string and construct an XML query that it then sends to a hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
-== Features
+NOTE: There are still some features that may not work completely, see the todo list below to see what I hope to get in as I continue to work on the gem. If there is anything missing let me know.
+
+=== Features
 
 * Provides an easy way for you to use the Thanx Media, Endeca On-Demand Web API
 * Builds an XML query from a query-string, formatted for the Endeca On-Demand Service
 * Handles the Endeca On-Demand response XML and exposes methods to use response data
 
-== Install
+=== Install
 
-=== Rails
+==== Rails
 
 Add this line to your Gemfile:
 
@@ -22,11 +24,11 @@ Then bundle install:
 
 ---
 
-=== Non Rails
+==== Non Rails
 
  gem install EndecaOnDemand
 
-== Usage
+=== Usage
 
 EndecaOnDemand constructs an XML query to send to a hosted Endeca On-Demand Cluster, via a query string:
 NOTE: This is a complete example. Any unneeded option should not be included in the query-string
@@ -39,12 +41,12 @@ NOTE: The base options and current category are set manually and not via a query
   options = {
               'add_base'                          => {'RecordsSet' => true, 'Dimensions' => true, 'BusinessRulesResult' => true, 'AppliedFilters' => true},
               'add_keyword_search'                => {},
-              'add_dimension_value_id_navigation' => {},
+              'add_dimension_value_id_navigation' => [],
               'add_category_navigation_query'     => "current_category_id",
               'add_sorting'                       => {},
               'add_paging'                        => {},
               'add_advanced_parameters'           => {},
-              'add_profiles'                      => {},
+              'add_profiles'                      => [],
               'add_filters'                       => {}
             }
             
@@ -54,12 +56,12 @@ NOTE: This is a complete example. It is not necessary to include anything that y
   options = {
               'add_base'                          => {'RecordsSet' => true, 'Dimensions' => true, 'BusinessRulesResult' => true, 'AppliedFilters' => true},
               'add_keyword_search'                => {'searh-key => 'key', search-term => 'term'},
-              'add_dimension_value_id_navigation' => {[1, 2, 3, 4]},
+              'add_dimension_value_id_navigation' => [1, 2, 3, 4],
               'add_category_navigation_query'     => 1,
               'add_sorting'                       => {'sort-key' => 'key', 'sort-direction' => 'Descending'},
               'add_paging'                        => {'RecordOffset' => 0, 'RecordsPerPage' => 9},
               'add_advanced_parameters'           => {'AggregationKey' => 'key'},
-              'add_profiles'                      => {[1, 2, 3, 4]},
+              'add_profiles'                      => [1, 2, 3, 4],
               'add_filters'                       => {}
             }
             
@@ -70,6 +72,33 @@ Provide the location of your hosted Endeca On-Demand Cluster (this can be set as
 Pass your 'host' and 'options' hash to new EndecaOnDemand
 
   @endeca = EndecaOnDemand.new(host, options)
+  
+All of the following have been exposed as part of the API, most should be pretty self explanatory of what they return:
+
+  @endeca.records
+  @endeca.record_offset
+  @endeca.records_per_page
+  @endeca.total_record_count
+  @endeca.breadcrumbs
+  @endeca.filtercrumbs - Filtercrumbs are pretty much breadcrumbs that are tailored to be used as left nav filterables (per Thanx Medias recommendation)
+  @endeca.dimensions
+  @endeca.rules
+  @endeca.searchs
+  
+  NOTE: The following are part of a search result so expect a change where they become part of a search results class rather than naked calls
+  @endeca.matchedrecordcount
+  @endeca.matchedmode
+  @endeca.applied_search_adjustments
+  @endeca.suggested_search_adjustments
+  @endeca.selected_dimension_value_ids
+
+I also exposed some 'debug'-ish type options to the API so you can see a little of what your request/response looks like if your not getting back the results your expecting
+  
+  @endeca.uri
+  @endeca.http
+  @endeca.base
+  @endeca.query
+  @endeca.response
 
 Below are (ruby) examples of how you could access the response data:
 
@@ -125,20 +154,25 @@ Each object will have associated instance variables that will allow you directly
     etc...
   end
   
-== F.A.Q
+=== F.A.Q
 
 * Q: I'm getting a response error saying something about multiple values for model Category
 * A: You are most likely trying to pass a CategoryId (CID) with DimensionValueId(s) (DVID) that don't match. The DVIDs must belong to the category passed as the CID.
 
-== TODO
+=== TODO
 
 * More detail on breadcrumbs (and their suggested use as left nav filters)
 * More on filters
+* Build in support for filters
+* Add tests
+* I don't have all the possible advanced parameters, so for now it only handles the default 'AggregationKey'
+* Search needs some more testing. Currently its only been setup with a basic search, so I'm not aware of what additional parameters might be coming in, and how I may need to handle them
+* Review the classes and create any additional classes that might be useful where only an instance variable currently exists (i.e. search_reports or paging)
 
-== CONTACT
+=== CONTACT
 
 Please contact me with any question, bugs, suggestions, etc.
 
-== Copyright
+=== Copyright
 
 Copyright (c) 2011 Steve Domino. See LICENSE.txt for further details
