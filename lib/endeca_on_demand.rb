@@ -244,21 +244,26 @@ class EndecaOnDemand
   def build_filtercrumbs
     @filtercrumbs = []
     
-    breads = @response['Breadcrumbs']['Breads']
-    if breads.instance_of?(Hash)
-      breads.each do |key, value|
-        @filtercrumbs.push(value)
-      end
-    elsif breads.instance_of?(Array)
-      breads.each do |bread|
-        if bread.instance_of?(Hash)
-          @filtercrumbs.push(bread['Bread'])
-        elsif bread.instance_of?(Array)
-          bread['Bread'].each do |crumb|
-            @filtercrumbs.push(crumb)
+    breadcrumbs = @response['Breadcrumbs']
+    unless breadcrumbs.nil?
+      breads = @response['Breadcrumbs']['Breads']
+      if breads.instance_of?(Hash)
+        breads.each do |key, value|
+          @filtercrumbs.push(value)
+        end
+      elsif breads.instance_of?(Array)
+        breads.each do |bread|
+          if bread.instance_of?(Hash)
+            @filtercrumbs.push(bread['Bread'])
+          elsif bread.instance_of?(Array)
+            bread['Bread'].each do |crumb|
+              @filtercrumbs.push(crumb)
+            end
           end
         end
       end
+    else
+      puts 'There are no breadcrumbs (filtercrumbs) with this response!'
     end
   end
   
