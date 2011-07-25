@@ -362,7 +362,7 @@ class EndecaOnDemand
     search_report = @response['AppliedFilters']['SearchReports']['SearchReport']
     
     @matchedrecordcount           = search_report.fetch('matchedrecordcount')
-    @matchedmode                  = search_report.fetch('matchmode')
+    @matchedmode                  = search_report.fetch('matchedmode')
     @matchedtermscount            = search_report.fetch('matchedtermscount')
     @applied_search_adjustments   = search_report.fetch('AppliedSearchAdjustments')
     @suggested_search_adjustments = search_report.fetch('SuggestedSearchAdjustments')
