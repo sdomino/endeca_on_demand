@@ -33,7 +33,7 @@ class EndecaOnDemand
   
     ## DEBUG
     attr_reader :uri, :http
-    attr_reader :base, :query, :response
+    attr_reader :base, :query, :request, :raw_response, :response
     ## /DEBUG
   
   ### /API
@@ -149,8 +149,8 @@ class EndecaOnDemand
     end
     
     begin
-      request, response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
-      handle_response(Crackoid::XML.parse(response))
+      @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
+      handle_response(Crackoid::XML.parse(@raw_response))
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
       puts "ERROR: #{error.message}"
     end
@@ -160,6 +160,7 @@ class EndecaOnDemand
 
   def handle_response(response)
     @response = response['Final']
+    
     build_data
   end
   
