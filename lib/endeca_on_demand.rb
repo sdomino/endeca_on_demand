@@ -31,10 +31,10 @@ class EndecaOnDemand
   attr_reader :searchs, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
   attr_reader :selected_dimension_value_ids
   
-    ## DEBUG
-    attr_reader :uri, :http
-    attr_reader :base, :query, :request, :raw_response, :response
-    ## /DEBUG
+  ## DEBUG
+  attr_reader :uri, :http
+  attr_reader :base, :query, :request, :raw_response, :response
+  ## /DEBUG
   
   ### /API
   
