@@ -6,11 +6,11 @@ class EndecaOnDemand
       
       dimension.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
+        self.class_eval("attr_reader :#{key.downcase}")
       end
     end
     
-    # is there anyway to do this dynamically?
-    attr_reader :name, :id, :group_name, :hasmore, :count, :dimensionvalues, :dimension_values
-
+    attr_reader :dimension_values
+    
   end
 end

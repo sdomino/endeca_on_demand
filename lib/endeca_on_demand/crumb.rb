@@ -4,11 +4,9 @@ class EndecaOnDemand
     def initialize(crumb)
       crumb.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
+        self.class_eval("attr_reader :#{key.downcase}")
       end
     end
     
-    # is there anyway to do this dynamically?
-    attr_reader :name, :original_id, :id
-
   end
 end

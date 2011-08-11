@@ -20,6 +20,11 @@ class EndecaOnDemand
     
     #
     send_request
+    
+    self.instance_variables.each do |instance_variable|
+      # puts "VARS: #{instance_variable}"
+      # self.class_eval("attr_reader :#{instance_variable}")
+    end
   end
   
   ### API
@@ -292,10 +297,10 @@ class EndecaOnDemand
   def add_dimension_values(dimension)
     unless dimension['DimensionValues'].nil?
       if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
-        @dimension.dimension_values.push(EndecaOnDemand::Dimension.new(dimension['DimensionValues']))
+        @dimension.dimension_values.push(EndecaOnDemand::DimensionValue.new(dimension['DimensionValues']['DimensionValue']))
       elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
         dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
-          @dimension.dimension_values.push(EndecaOnDemand::Dimension.new(dimension_value))
+          @dimension.dimension_values.push(EndecaOnDemand::DimensionValue.new(dimension_value))
         end
       end
       @dimensions.push(@dimension)
@@ -312,14 +317,14 @@ class EndecaOnDemand
     unless business_rules_result.nil?
       business_rules = @response['BusinessRulesResult']['BusinessRules']
       if business_rules.instance_of?(Hash)
-        business_rule = EndecaOnDemand::Rule.new(business_rules)
+        business_rule = EndecaOnDemand::BusinessRule.new(business_rules)
         business_rules.each do |key, value|
           add_business_rule_properties(value) if key == 'properties'
           add_business_rule_records(value) if key == 'RecordSet'
         end
       elsif business_rules.instance_of?(Array)
         @response['BusinessRulesResult']['BusinessRules']['BusinessRule'].each do |rule|
-          business_rule = EndecaOnDemand::Rule.new(rule)
+          business_rule = EndecaOnDemand::BusinessRule.new(rule)
           rule.each do |key, value|
             add_business_rule_properties(key) if key == 'properties'
             add_business_rule_records(key) if key == 'RecordSet'
@@ -334,7 +339,7 @@ class EndecaOnDemand
   
   # Adds an array of PROPERTIES to each BUSINESS RULE
   def add_business_rule_properties(value)
-    @business_rule.properties_array.push(EndecaOnDemand::Rule.new(value)) unless value.nil?
+    @business_rule.properties_array.push(EndecaOnDemand::BusinessRuleProperty.new(value)) unless value.nil?
   end
   
   # Adds an array of RECORDS to each BUSINESS RULE
