@@ -8,5 +8,11 @@ class EndecaOnDemand
       end
     end
     
+    def method_missing(method, *args, &block)
+      unless self.instance_variables.include?(:"@#{method}")
+        "N/A"
+      end
+    end
+    
   end
 end

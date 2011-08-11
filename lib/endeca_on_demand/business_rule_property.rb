@@ -7,6 +7,12 @@ class EndecaOnDemand
         self.class_eval("attr_reader :#{key.downcase}")
       end
     end
+    
+    def method_missing(method, *args, &block)
+      unless self.instance_variables.include?(:"@#{method}")
+        "N/A"
+      end
+    end
 
   end
 end

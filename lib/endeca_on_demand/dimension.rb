@@ -1,6 +1,8 @@
 class EndecaOnDemand
   class Dimension
     
+    attr_reader :dimension_values
+    
     def initialize(dimension)
       @dimension_values = []
       
@@ -10,7 +12,11 @@ class EndecaOnDemand
       end
     end
     
-    attr_reader :dimension_values
+    def method_missing(method, *args, &block)
+      unless self.instance_variables.include?(:"@#{method}")
+        "N/A"
+      end
+    end
     
   end
 end

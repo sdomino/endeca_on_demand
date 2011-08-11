@@ -1,6 +1,8 @@
 class EndecaOnDemand
   class BusinessRule
     
+    attr_reader :properties_array
+    
     def initialize(business_rule)
       @properties_array   = []
       @records            = []
@@ -11,7 +13,11 @@ class EndecaOnDemand
       end
     end
     
-    attr_reader :properties_array
+    def method_missing(method, *args, &block)
+      unless self.instance_variables.include?(:"@#{method}")
+        "N/A"
+      end
+    end
     
   end
 end
