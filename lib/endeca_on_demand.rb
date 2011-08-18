@@ -38,10 +38,16 @@ class EndecaOnDemand
   
   ## DEBUG
   attr_reader :uri, :http
-  attr_reader :base, :query, :request, :raw_response, :response
+  attr_reader :base, :query, :request, :raw_response, :response, :error
   ## /DEBUG
   
   ### /API
+  
+  def method_missing(method, *args, &block)
+    unless self.instance_variables.include?(:"@#{method}")
+      puts "Unable to retrieve this value because: #{@error.message}"
+    end
+  end
   
   private
   
@@ -157,7 +163,7 @@ class EndecaOnDemand
       @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
       handle_response(Crackoid::XML.parse(@raw_response))
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
-      puts "ERROR: #{error.message}"
+      @error = error
     end
   end
   
@@ -254,7 +260,7 @@ class EndecaOnDemand
       breads = @response['Breadcrumbs']['Breads']
       if breads.instance_of?(Hash)
         breads.each do |key, value|
-          @filtercrumbs.push(value)
+          @filtercrumbs.push(EndecaOnDemand::Crumb.new(value))
         end
       elsif breads.instance_of?(Array)
         breads.each do |bread|
@@ -262,7 +268,7 @@ class EndecaOnDemand
             @filtercrumbs.push(bread['Bread'])
           elsif bread.instance_of?(Array)
             bread['Bread'].each do |crumb|
-              @filtercrumbs.push(crumb)
+              @filtercrumbs.push(EndecaOnDemand::Crumb.new(crumb))
             end
           end
         end

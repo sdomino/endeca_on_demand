@@ -1,3 +1,3 @@
 class EndecaOnDemand
-  VERSION = "0.9.6"
+  VERSION = "0.9.7"
 end
