@@ -1,3 +1,5 @@
+require 'endeca_on_demand/proxy'
+
 Dir["#{File.dirname(__FILE__)}/endeca_on_demand/*"].each { |file| require(file)}
 
 require 'builder'
@@ -28,28 +30,66 @@ class EndecaOnDemand
   end
   
   ### API
+    attr_reader :records, :record_offset, :records_per_page, :total_record_count
+    attr_reader :breadcrumbs, :filtercrumbs
+    attr_reader :dimensions
+    attr_reader :rules
+    attr_reader :searchs, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
+    attr_reader :selected_dimension_value_ids
   
-  attr_reader :records, :record_offset, :records_per_page, :total_record_count
-  attr_reader :breadcrumbs, :filtercrumbs
-  attr_reader :dimensions
-  attr_reader :rules
-  attr_reader :searchs, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
-  attr_reader :selected_dimension_value_ids
-  
-  ## DEBUG
-  attr_reader :uri, :http
-  attr_reader :base, :query, :request, :raw_response, :response, :error
-  ## /DEBUG
-  
+    ## DEBUG
+      attr_reader :uri, :http
+      attr_reader :base, :query, :request, :raw_response, :response, :error
+    ## /DEBUG
   ### /API
   
-  def method_missing(method, *args, &block)
-    unless self.instance_variables.include?(:"@#{method}")
-      puts "Unable to retrieve this value because: #{@error.message}"
-    end
+  def success?
+    @error.blank?
   end
   
   private
+  
+  def method_missing(method, *args, &block)
+    unless self.instance_variables.include?(:"@#{method}")
+      puts "#{method} is unavailable."
+    else
+      puts "Unable to retrieve #{method} because: #{@error.message}."
+    end
+  end
+  
+  ## SEND REQUEST
+  
+  # Completes the endeca XML reqeust by inserting the XML body into the requred 'Query' tags, and sends the request to your hosted Endeca On-Demand Web API
+  def send_request
+    @query = Builder::XmlMarkup.new(:indent => 2)
+    @query.Query do
+      @query << @body.target!
+    end
+    
+    begin
+      @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
+      handle_response(Crackoid::XML.parse(@raw_response))
+    rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
+      @error = error
+    end
+  end
+  
+  ## HANDLE RESPONSE
+
+  def handle_response(response)
+    @response = response['Final']
+    
+    build_data
+  end
+  
+  def build_data
+    build_records
+    build_breadcrumbs
+    build_filtercrumbs
+    build_dimensions
+    build_business_rules
+    build_applied_filters
+  end
   
   ### XML REQUEST ###
   
@@ -150,39 +190,9 @@ class EndecaOnDemand
     # puts @body.target!
   end
   
-  ## SEND REQUEST
+  ### RESPONSE XML ###
   
-  # Completes the endeca XML reqeust by inserting the XML body into the requred 'Query' tags, and sends the request to your hosted Endeca On-Demand Web API
-  def send_request
-    @query = Builder::XmlMarkup.new(:indent => 2)
-    @query.Query do
-      @query << @body.target!
-    end
-    
-    begin
-      @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
-      handle_response(Crackoid::XML.parse(@raw_response))
-    rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
-      @error = error
-    end
-  end
-  
-  ## HANDLE RESPONSE
-
-  def handle_response(response)
-    @response = response['Final']
-    
-    build_data
-  end
-  
-  def build_data
-    build_records
-    build_breadcrumbs
-    build_filtercrumbs
-    build_dimensions
-    build_business_rules
-    build_applied_filters
-  end
+  ## BUILD RESPONSE
   
   # Builds an array of RECORDS
   def build_records
@@ -260,21 +270,21 @@ class EndecaOnDemand
       breads = @response['Breadcrumbs']['Breads']
       if breads.instance_of?(Hash)
         breads.each do |key, value|
-          @filtercrumbs.push(EndecaOnDemand::Crumb.new(value))
+          @filtercrumbs.push(value)
         end
       elsif breads.instance_of?(Array)
         breads.each do |bread|
           if bread.instance_of?(Hash)
-            @filtercrumbs.push(bread['Bread'])
+            @filtercrumbs.push(bread)
           elsif bread.instance_of?(Array)
             bread['Bread'].each do |crumb|
-              @filtercrumbs.push(EndecaOnDemand::Crumb.new(crumb))
+              @filtercrumbs.push(crumb)
             end
           end
         end
       end
     else
-      puts 'There are no breadcrumbs (filtercrumbs) with this response!'
+      puts 'There are no filtercrumbs (breadcrumbs) with this response!'
     end
   end
   

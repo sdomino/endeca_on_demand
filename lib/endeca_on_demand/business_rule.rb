@@ -1,5 +1,5 @@
 class EndecaOnDemand
-  class BusinessRule
+  class BusinessRule < Proxy
     
     attr_reader :properties_array
     
@@ -10,12 +10,6 @@ class EndecaOnDemand
       business_rule.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
         self.class_eval("attr_reader :#{key.downcase}")
-      end
-    end
-    
-    def method_missing(method, *args, &block)
-      unless self.instance_variables.include?(:"@#{method}")
-        "N/A"
       end
     end
     

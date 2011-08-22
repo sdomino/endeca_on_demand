@@ -1,5 +1,5 @@
 class EndecaOnDemand
-  class Dimension
+  class Dimension < Proxy
     
     attr_reader :dimension_values
     
@@ -9,12 +9,6 @@ class EndecaOnDemand
       dimension.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
         self.class_eval("attr_reader :#{key.downcase}")
-      end
-    end
-    
-    def method_missing(method, *args, &block)
-      unless self.instance_variables.include?(:"@#{method}")
-        "N/A"
       end
     end
     
