@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "endeca_on_demand"
   
-  s.add_dependency 'crackoid'
+  s.add_dependency 'nokogiri'
 
   s.add_development_dependency 'rspec'
 
