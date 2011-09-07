@@ -2,7 +2,7 @@
 
 This Endeca On-Demand Web API gem will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
-NOTE: There are still some features that may not work completely, see the todo list below to see what I hope to get in as I continue to work on the gem. If there is anything missing let me know.
+NOTE: There are aspects of this that I am unable to test simply because the implementation I used to create it wasn't using all available options. Please, if you run into issues let me know so I can add anything thats missing, or feel free to add it yourself.
 
 === Features
 
@@ -110,9 +110,15 @@ Records:
     puts "---------- END"
   end
 
-Breadcrumbs:
+Breadcrumbs/Filtercrumbs:
 
   @endeca.breadcrumbs.each do |crumb|
+    puts "---------- BEGIN CRUMB"
+    puts "CRUMB: #{crumb.inspect}"
+    puts "---------- END"
+  end
+
+  @endeca.filtercrumbs.each do |crumb|
     puts "---------- BEGIN CRUMB"
     puts "CRUMB: #{crumb.inspect}"
     puts "---------- END"
@@ -138,14 +144,6 @@ Rules:
     puts "RULE RECORDS: #{rule.records}"
     puts "---------- END"
   end
-
-Filters:
-
-  @endeca.filters.each do |filter|
-    puts "---------- BEGIN FILTER"
-    puts "FILTER: #{filter.inspect}"
-    puts "---------- END"
-  end
   
 Each object will have associated instance variables that will allow you directly call any value on that object:
 
@@ -161,8 +159,7 @@ Each object will have associated instance variables that will allow you directly
 
 === TODO
 
-* More detail on breadcrumbs (and their suggested use as left nav filters)
-* More on filters
+* [complete] More detail on breadcrumbs (and their suggested use as left nav filters)
 * Build in support for filters
 * Add tests
 * I don't have all the possible advanced parameters, so for now it only handles the default 'AggregationKey'
