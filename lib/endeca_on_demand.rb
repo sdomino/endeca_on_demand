@@ -3,7 +3,7 @@ require 'endeca_on_demand/proxy'
 Dir["#{File.dirname(__FILE__)}/endeca_on_demand/*"].each { |file| require(file)}
 
 require 'builder'
-require 'crackoid'
+require 'nokogiri'
 require 'net/http'
 require 'uri'
 
@@ -68,7 +68,7 @@ class EndecaOnDemand
     
     begin
       @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
-      handle_response(Crackoid::XML.parse(@raw_response))
+      handle_response(Nokogiri::XML(@raw_response))
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
       @error = error
     end
@@ -77,12 +77,8 @@ class EndecaOnDemand
   ## HANDLE RESPONSE
 
   def handle_response(response)
-    @response = response['Final']
+    @response = response
     
-    build_data
-  end
-  
-  def build_data
     build_records
     build_breadcrumbs
     build_filtercrumbs
@@ -114,8 +110,8 @@ class EndecaOnDemand
   # NOTE: If the optional CategoryId (CID) is passed, all DVIDs must belong to the category.
   def add_dimension_value_id_navigation(options)
     @body.SelectedDimensionValueIds do
-      options.each do |dimension|
-        @body.tag!('DimensionValueId', dimension)
+      options.each do |option|
+        @body.tag!('DimensionValueId', option)
       end
     end
   end
@@ -168,8 +164,8 @@ class EndecaOnDemand
   # Adds UserProfile(s) to the request.
   def add_profiles(options)
     @body.UserProfiles do
-      options.each do |profile|
-        @body.tag!('UserProfile', profile)
+      options.each do |option|
+        @body.tag!('UserProfile', option)
       end
     end
   end
@@ -198,20 +194,13 @@ class EndecaOnDemand
   def build_records
     @records = []
     
-    record_set = @response['RecordsSet']
+    @record_offset = @response.xpath("//RecordsSet//offset")
+    @records_per_page = @response.xpath("//RecordsSet//recordsperpage")
+    @total_record_count = @response.xpath("//RecordsSet//totalrecordcount")
     
-    @record_offset = record_set.fetch('offset')
-    @records_per_page = record_set.fetch('recordsperpage')
-    @total_record_count = record_set.fetch('totalrecordcount')
-    
-    unless record_set.nil?
-      record = @response['RecordsSet']['Record']
-      if record.instance_of?(Hash)
-        @records.push(EndecaOnDemand::Record.new(record_set))
-      elsif record.instance_of?(Array)
-        record.each do |record|
-          @records.push(EndecaOnDemand::Record.new(record))
-        end
+    unless @response.xpath("//RecordsSet").nil?
+      @response.xpath("//RecordsSet//Record").each do |record|
+        @records.push(EndecaOnDemand::Record.new(record))
       end
     else
       puts 'There are no records with this response!'
@@ -220,71 +209,21 @@ class EndecaOnDemand
   
   # Builds an array of BREADCRUMBS
   def build_breadcrumbs
+    @filtercrumbs = []
     @breadcrumbs  = []
-    
-    breadcrumbs = @response['Breadcrumbs']
-    unless breadcrumbs.nil?
-      breads = @response['Breadcrumbs']['Breads']
-      if breads.instance_of?(Hash)
-        bread = breads['Bread']
-        if bread.instance_of?(Hash)
-          bread.each do |key, value|
-            @breadcrumbs.push(EndecaOnDemand::Crumb.new(bread))
-          end
-        elsif bread.instance_of?(Array)
-          bread.each do |crumb|
-            @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
-          end
+
+    unless @response.xpath("//Breadcrumbs").nil?
+      @response.xpath("//Breadcrumbs//Breads").each do |node|
+        filtercrumbs = []
+        node.xpath("./Bread").each do |node|
+          breadcrumb = EndecaOnDemand::BreadCrumb.new(node)
+          filtercrumbs.push(breadcrumb)
+          @breadcrumbs.push(breadcrumb)
         end
-      elsif breads.instance_of?(Array)
-        breads.each do |breadz|
-          bread = breadz['Bread']
-          if breadz.instance_of?(Hash)
-            if bread.instance_of?(Hash)
-              bread.each do |key, value|
-                @breadcrumbs.push(EndecaOnDemand::Crumb.new(bread))
-              end
-            elsif bread.instance_of?(Array)
-              bread.each do |crumb|
-                @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
-              end
-            end
-          elsif breadz.instance_of?(Array)
-            bread.each do |crumb|
-              @breadcrumbs.push(EndecaOnDemand::Crumb.new(crumb))
-            end
-          end
-        end
+        @filtercrumbs.push(filtercrumbs)
       end
     else  
       puts 'There are no breadcrumbs with this response!'
-    end
-  end
-  
-  # Builds an array of FILTERCRUMBS (BREADCRUMBS used as left nav filterables)
-  def build_filtercrumbs
-    @filtercrumbs = []
-    
-    breadcrumbs = @response['Breadcrumbs']
-    unless breadcrumbs.nil?
-      breads = @response['Breadcrumbs']['Breads']
-      if breads.instance_of?(Hash)
-        breads.each do |key, value|
-          @filtercrumbs.push(value)
-        end
-      elsif breads.instance_of?(Array)
-        breads.each do |bread|
-          if bread.instance_of?(Hash)
-            @filtercrumbs.push(bread)
-          elsif bread.instance_of?(Array)
-            bread['Bread'].each do |crumb|
-              @filtercrumbs.push(crumb)
-            end
-          end
-        end
-      end
-    else
-      puts 'There are no filtercrumbs (breadcrumbs) with this response!'
     end
   end
   
@@ -292,123 +231,60 @@ class EndecaOnDemand
   def build_dimensions
     @dimensions = []
     
-    dimensions = @response['Dimensions']
-    unless @response['Dimensions'].nil?
-      dimension = @response['Dimensions']['Dimension']
-      if dimension.instance_of?(Hash)
-        @dimension = EndecaOnDemand::Dimension.new(dimensions)
-        add_dimension_values(dimension)
-      elsif dimension.instance_of?(Array)
-        dimension.each do |dimension|
-          @dimension = EndecaOnDemand::Dimension.new(dimension)
-          add_dimension_values(dimension)
-        end
+    unless @response.xpath("//Dimensions").nil?
+      @response.xpath("//Dimensions//Dimension").each do |node|
+        @dimensions.push(EndecaOnDemand::Dimension.new(node))
       end
     else
       puts 'There are no dimensions with this response!'
     end
   end
   
-  # Adds an array of DIMENSION VALUES to each DIMENSION
-  def add_dimension_values(dimension)
-    unless dimension['DimensionValues'].nil?
-      if dimension['DimensionValues']['DimensionValue'].instance_of?(Hash)
-        @dimension.dimension_values.push(EndecaOnDemand::DimensionValue.new(dimension['DimensionValues']['DimensionValue']))
-      elsif dimension['DimensionValues']['DimensionValue'].instance_of?(Array)
-        dimension['DimensionValues']['DimensionValue'].each do |dimension_value|
-          @dimension.dimension_values.push(EndecaOnDemand::DimensionValue.new(dimension_value))
-        end
-      end
-      @dimensions.push(@dimension)
-    else
-      puts "There are no dimension values on this dimension!"
-    end
-  end
-  
   # Builds an array of BUSINESS RULES
   def build_business_rules
-    @business_rules = []
+    @business_rules_results = []
     
-    business_rules_result = @response['BusinessRulesResult']
-    unless business_rules_result.nil?
-      business_rules = @response['BusinessRulesResult']['BusinessRules']
-      if business_rules.instance_of?(Hash)
-        business_rule = EndecaOnDemand::BusinessRule.new(business_rules)
-        business_rules.each do |key, value|
-          add_business_rule_properties(value) if key == 'properties'
-          add_business_rule_records(value) if key == 'RecordSet'
-        end
-      elsif business_rules.instance_of?(Array)
-        @response['BusinessRulesResult']['BusinessRules']['BusinessRule'].each do |rule|
-          business_rule = EndecaOnDemand::BusinessRule.new(rule)
-          rule.each do |key, value|
-            add_business_rule_properties(key) if key == 'properties'
-            add_business_rule_records(key) if key == 'RecordSet'
-          end
-        end
+    unless @response.xpath("//BusinessRulesResult").nil?
+      @response.xpath("//BusinessRulesResult//BusinessRules//BusinessRule").each do |node|
+        @business_rules_results.push(EndecaOnDemand::BusinessRulesResult.new(node))
       end
-      @business_rules.push(business_rule)
     else
       puts 'There are no business rules with this response!'
     end
   end
-  
-  # Adds an array of PROPERTIES to each BUSINESS RULE
-  def add_business_rule_properties(value)
-    @business_rule.properties_array.push(EndecaOnDemand::BusinessRuleProperty.new(value)) unless value.nil?
-  end
-  
-  # Adds an array of RECORDS to each BUSINESS RULE
-  def add_business_rule_records(value)
-    @business_rule.records.push(EndecaOnDemand::Record.new(value['Record'])) unless value.nil?
-  end
-  
+    
   # Builds the SEARCH REPORTS and SELECTED DIMENSION VALUE IDS if included in response
   def build_applied_filters
-    unless @response['AppliedFilters'].nil?
-      unless @response['AppliedFilters']['SearchReports'].nil?
-        build_search_reports
+    unless @response.xpath("//AppliedFilters").nil?
+
+      # Builds an array of SEARCH REPORTS
+      unless @response.xpath("//AppliedFilters//SearchReports").nil?
+        @searchs = []
+    
+        @matchedrecordcount             = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedrecordcount")
+        @matchedmode                    = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedmode")
+        @matchedtermscount              = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedtermscount")
+        @applied_search_adjustments     = @response.xpath("//AppliedFilters//SearchReports//SearchReport//AppliedSearchAdjustments")
+        @suggested_search_adjustments   = @response.xpath("//AppliedFilters//SearchReports//SearchReport//SuggestedSearchAdjustments")
+    
+        @searchs.push(EndecaOnDemand::Search.new(@response.xpath("//AppliedFilters//SearchReports//SearchReport//Search")))
       else
         puts 'There are no search reports with this response!'
       end
-      unless @response['AppliedFilters']['SelectedDimensionValueIds'].nil?
-        build_selected_dimension_value_ids
+
+      # Builds an array of SELECTED DIMENSION VALUE IDS
+      unless @response.xpath("//AppliedFilters//SelectedDimensionValueIds").nil?
+        @selected_dimension_value_ids = []
+    
+        @response.xpath("//AppliedFilters//SelectedDimnesionValueIds").each do |node|
+          @selected_dimension_value_ids.push(EndecaOnDemand::SelectedDimensionValueId.new(node))
+        end
       else
         puts "There are no selected dimension value ids with this response!"
       end
     else
       puts 'There were not applied filters with this response!'
     end
-  end
-  
-  # Builds an array of SEARCH REPORTS
-  def build_search_reports
-    @searchs = []
-    
-    search_report = @response['AppliedFilters']['SearchReports']['SearchReport']
-    
-    @matchedrecordcount           = search_report.fetch('matchedrecordcount')
-    @matchedmode                  = search_report.fetch('matchedmode')
-    @matchedtermscount            = search_report.fetch('matchedtermscount')
-    @applied_search_adjustments   = search_report.fetch('AppliedSearchAdjustments')
-    @suggested_search_adjustments = search_report.fetch('SuggestedSearchAdjustments')
-    
-    @searchs.push(EndecaOnDemand::Search.new(search_report.fetch('Search')))
-  end
-  
-  # Builds an array of SELECTED DIMENSION VALUE IDS
-  def build_selected_dimension_value_ids
-    @selected_dimension_value_ids = []
-    
-    selected_dimension_value_ids = @response['AppliedFilters']['SelectedDimensionValueIds']
-    if selected_dimension_value_ids.instance_of?(Hash)
-      selected_dimension_value_id = EndecaOnDemand::DimensionValueId.new(selected_dimension_value_ids)
-    elsif selected_dimension_value_ids.instance_of?(Array)
-      selected_dimension_value_ids.each do |key, value|
-        selected_dimension_value_id = EndecaOnDemand::DimensionValueId.new(value)
-      end
-    end
-    @selected_dimension_value_ids.push(selected_dimension_value_id)
   end
   
 end

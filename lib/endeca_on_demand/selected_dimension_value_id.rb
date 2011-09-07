@@ -1,8 +1,8 @@
 class EndecaOnDemand
-  class BusinessRuleProperty < Proxy
-    
-    def initialize(property)
-      property.each do |key, value|
+  class SelectedDimensionValueId < Proxy
+
+    def initialize(id)
+      id.each do |key, value|
         self.instance_variable_set(:"@#{key.downcase}", value)
         self.class_eval("attr_reader :#{key.downcase}")
       end

@@ -2,9 +2,9 @@ class EndecaOnDemand
   class Record < Proxy
 
     def initialize(record)
-      record.each do |key, value|
-        self.instance_variable_set(:"@#{key.downcase}", value)
-        self.class_eval("attr_reader :#{key.downcase}")
+      record.children.each do |node|
+        self.instance_variable_set(:"@#{node.name.downcase}", node.content)
+        self.class_eval("attr_reader :#{node.name.downcase}")
       end
     end
     
