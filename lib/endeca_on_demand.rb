@@ -43,7 +43,7 @@ class EndecaOnDemand
   
     ## DEBUG
       attr_reader :uri, :http
-      attr_reader :base, :query, :request, :raw_response, :response, :error
+      attr_reader :base, :query, :request, :response, :error
     ## /DEBUG
   ### /API
   
@@ -72,24 +72,19 @@ class EndecaOnDemand
     
     begin
       @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
-      handle_response(Nokogiri::XML(@raw_response))
+     
+      @response = Nokogiri::XML(@raw_response)
+
+      build_records
+      build_breadcrumbs
+      build_dimensions
+      build_business_rules
+      build_search_reports
+      build_selected_dimension_value_ids
+      build_keyword_redirect
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => error
       @error = error
     end
-  end
-  
-  ## HANDLE RESPONSE
-
-  def handle_response(response)
-    @response = response
-    
-    build_records
-    build_breadcrumbs
-    build_dimensions
-    build_business_rules
-    build_search_reports
-    build_selected_dimension_value_ids
-    build_keyword_redirect
   end
   
   ### XML REQUEST ###

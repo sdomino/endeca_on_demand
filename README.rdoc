@@ -73,23 +73,15 @@ Pass your 'host' and 'options' hash to new EndecaOnDemand
 
   @endeca = EndecaOnDemand.new(host, options)
   
-All of the following have been exposed as part of the API, most should be pretty self explanatory of what they return:
-
+All of the following have been exposed as part of the API, most of them will also have sub api methods available which will become visible with a .inspect on the object:
+  
   @endeca.records
-  @endeca.record_offset
-  @endeca.records_per_page
-  @endeca.total_record_count
   @endeca.breadcrumbs
-  @endeca.filtercrumbs - Filtercrumbs are pretty much breadcrumbs that are tailored to be used as left nav filterables (per Thanx Medias recommendation)
+  @endeca.filtercrumbs (Filtercrumbs are breadcrumbs that have been tailored for use as left nav filterables)
   @endeca.dimensions
   @endeca.rules
-  @endeca.searchs
-  
-  NOTE: The following are part of a search result so expect a change where they become part of a search results class rather than naked calls
-  @endeca.matchedrecordcount
-  @endeca.matchedmode
-  @endeca.applied_search_adjustments
-  @endeca.suggested_search_adjustments
+  @endeca.search_reports
+  @endeca.keyword_redirect
   @endeca.selected_dimension_value_ids
 
 I also exposed some 'debug'-ish type options to the API so you can see a little of what your request/response looks like if your not getting back the results your expecting
@@ -98,59 +90,19 @@ I also exposed some 'debug'-ish type options to the API so you can see a little 
   @endeca.http
   @endeca.base
   @endeca.query
+  @endeca.raw_response
   @endeca.response
+  @endeca.error
 
-Below are (ruby) examples of how you could access the response data:
+Below is an example of how you could access the response data:
 
-Records:
-
-  @endeca.records.each do |record|
-    puts "---------- BEGIN RECORD"
-    puts "RECORD: #{record.inspect}"
-    puts "---------- END"
-  end
-
-Breadcrumbs/Filtercrumbs:
-
-  @endeca.breadcrumbs.each do |crumb|
-    puts "---------- BEGIN CRUMB"
-    puts "CRUMB: #{crumb.inspect}"
-    puts "---------- END"
-  end
-
-  @endeca.filtercrumbs.each do |crumb|
-    puts "---------- BEGIN CRUMB"
-    puts "CRUMB: #{crumb.inspect}"
-    puts "---------- END"
-  end
-
-Dimensions:
-
-  @endeca.dimensions.each do |dimension|
-    puts "---------- BEGIN DIMENSION"
-    puts "DIMENSION: #{dimension.inspect}"
-    puts "DIMENSION VALUES: #{dimension.dimensionvalues}"
-    puts "DIMENSION VALUES ARRAY: #{dimension.dimension_values}"
-    puts "---------- END"
-  end
-
-Rules:
-
-  @endeca.rules.each do |rule|
-    puts "---------- BEGIN RULE"
-    puts "RULE: #{rule.inspect}"
-    puts "RULE PROPERTIES: #{rule.properties}"
-    puts "RULE PROPERTIES_ARRAY: #{rule.properties_array}"
-    puts "RULE RECORDS: #{rule.records}"
-    puts "---------- END"
-  end
+  - @endeca.records.each do |record|
+    puts "----- RECORD: #{record.inspect}"
   
-Each object will have associated instance variables that will allow you directly call any value on that object:
+Each object will then have associated instance variables exposed that will allow you directly call any value on that object:
 
-  @endeca.records.each do |record|
-    record.p_name
-    etc...
-  end
+  - @endeca.records.each do |record|
+    puts "----- RECORD NAME: #{record.p_name}"
   
 === F.A.Q
 
@@ -164,7 +116,7 @@ Each object will have associated instance variables that will allow you directly
 * Add tests
 * I don't have all the possible advanced parameters, so for now it only handles the default 'AggregationKey'
 * Search needs some more testing. Currently its only been setup with a basic search, so I'm not aware of what additional parameters might be coming in, and how I may need to handle them
-* Review the classes and create any additional classes that might be useful where only an instance variable currently exists (i.e. search_reports or paging)
+* [complete] Review the classes and create any additional classes that might be useful where only an instance variable currently exists
 
 === CONTACT
 
