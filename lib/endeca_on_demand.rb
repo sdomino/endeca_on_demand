@@ -1,6 +1,6 @@
 require 'endeca_on_demand/proxy'
 
-Dir["#{File.dirname(__FILE__)}/endeca_on_demand/*"].each { |file| require(file)}
+Dir["#{File.dirname(__FILE__)}/endeca_on_demand/**/*"].each {|file| require(file)}
 
 require 'builder'
 require 'nokogiri'
@@ -18,7 +18,7 @@ class EndecaOnDemand
       
       #
       options.each do |key, value|
-        self.send(key.to_sym, value) unless value.empty?
+        self.send(key.to_sym, value) unless value.blank?
       end
       
       #
@@ -34,11 +34,11 @@ class EndecaOnDemand
   end
   
   ### API
-    attr_reader :records, :record_offset, :records_per_page, :total_record_count
+    attr_reader :records
     attr_reader :breadcrumbs, :filtercrumbs
     attr_reader :dimensions
     attr_reader :rules
-    attr_reader :searches, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
+    attr_reader :search_reports, :keyword_redirect
     attr_reader :selected_dimension_value_ids
   
     ## DEBUG
@@ -87,7 +87,9 @@ class EndecaOnDemand
     build_breadcrumbs
     build_dimensions
     build_business_rules
-    build_applied_filters
+    build_search_reports
+    build_selected_dimension_value_ids
+    build_keyword_redirect
   end
   
   ### XML REQUEST ###
@@ -201,7 +203,7 @@ class EndecaOnDemand
     @records_per_page = @response.xpath("//RecordsSet//recordsperpage")
     @total_record_count = @response.xpath("//RecordsSet//totalrecordcount")
     
-    unless @response.xpath("//RecordsSet").nil?
+    unless @response.xpath("//RecordsSet").blank?
       @response.xpath("//RecordsSet//Record").each do |record|
         @records.push(EndecaOnDemand::Record.new(record))
       end
@@ -215,7 +217,7 @@ class EndecaOnDemand
     @filtercrumbs = []
     @breadcrumbs  = []
 
-    unless @response.xpath("//Breadcrumbs").nil?
+    unless @response.xpath("//Breadcrumbs").blank?
       @response.xpath("//Breadcrumbs//Breads").each do |node|
         filtercrumbs = []
         node.xpath("./Bread").each do |node|
@@ -234,7 +236,7 @@ class EndecaOnDemand
   def build_dimensions
     @dimensions = []
     
-    unless @response.xpath("//Dimensions").nil?
+    unless @response.xpath("//Dimensions").blank?
       @response.xpath("//Dimensions//Dimension").each do |node|
         @dimensions.push(EndecaOnDemand::Dimension.new(node))
       end
@@ -247,7 +249,7 @@ class EndecaOnDemand
   def build_business_rules
     @business_rules_results = []
     
-    unless @response.xpath("//BusinessRulesResult").nil?
+    unless @response.xpath("//BusinessRulesResult").blank?
       @response.xpath("//BusinessRulesResult//BusinessRules//BusinessRule").each do |node|
         @business_rules_results.push(EndecaOnDemand::BusinessRulesResult.new(node))
       end
@@ -255,38 +257,41 @@ class EndecaOnDemand
       puts 'There are no business rules with this response!'
     end
   end
-    
-  # Builds the SEARCH REPORTS and SELECTED DIMENSION VALUE IDS if included in response
-  def build_applied_filters
-    unless @response.xpath("//AppliedFilters").nil?
 
-      # Builds an array of SEARCH REPORTS
-      unless @response.xpath("//AppliedFilters//SearchReports").nil?
-        @searches = []
+  # Builds an array of SEARCH REPORTS includes SEARCH
+  def build_search_reports
+    @search_reports = []
     
-        @matchedrecordcount             = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedrecordcount")
-        @matchedmode                    = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedmode")
-        @matchedtermscount              = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedtermscount")
-        @applied_search_adjustments     = @response.xpath("//AppliedFilters//SearchReports//SearchReport//AppliedSearchAdjustments")
-        @suggested_search_adjustments   = @response.xpath("//AppliedFilters//SearchReports//SearchReport//SuggestedSearchAdjustments")
-    
-        @searches.push(EndecaOnDemand::Search.new(@response.xpath("//AppliedFilters//SearchReports//SearchReport//Search")))
+    unless @response.xpath("//AppliedFilters").blank?
+      unless @response.xpath("//AppliedFilters//SearchReports").blank?
+        @search_reports.push(EndecaOnDemand::SearchReport.new(@response.xpath("//AppliedFilters//SearchReports//SearchReport")))
       else
-        puts 'There are no search reports with this response!'
+        puts "There are no search reports with this response!"
       end
+    end
+  end
 
-      # Builds an array of SELECTED DIMENSION VALUE IDS
-      unless @response.xpath("//AppliedFilters//SelectedDimensionValueIds").nil?
-        @selected_dimension_value_ids = []
-    
+  # Builds an array of SELECTED DIMENSION VALUE IDS
+  def build_selected_dimension_value_ids
+    @selected_dimension_value_ids = []
+
+    unless @response.xpath("//AppliedFilters").blank?
+      unless @response.xpath("//AppliedFilters//SelectedDimensionValueIds").blank?
         @response.xpath("//AppliedFilters//SelectedDimnesionValueIds").each do |node|
           @selected_dimension_value_ids.push(EndecaOnDemand::SelectedDimensionValueId.new(node))
         end
       else
         puts "There are no selected dimension value ids with this response!"
       end
+    end
+  end
+
+  # Builds a KEYWORD REDIRECT for a given search term
+  def build_keyword_redirect
+    unless @response.xpath("//KeywordRedirects").blank?
+      @keyword_redirect = EndecaOnDemand::KeywordRedirect.new(@response.xpath("//KeywordRedirects"))
     else
-      puts 'There were not applied filters with this response!'
+      puts "There is no keyword redirectd with this r!"
     end
   end
   

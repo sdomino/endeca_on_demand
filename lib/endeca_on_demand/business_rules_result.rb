@@ -1,9 +1,10 @@
 class EndecaOnDemand
   class BusinessRulesResult < Proxy
-    
-    attr_reader :properties
 
     require 'endeca_on_demand/business_rules_result/property'
+    require 'endeca_on_demand/record_set/record'
+    
+    attr_reader :properties
     
     def initialize(business_rules_result)
       @properties         = []
@@ -19,7 +20,7 @@ class EndecaOnDemand
 
         if node.name == "RecordSet"
           node.xpath("./RecordSet//Record").each do |node|
-            @records.push(EndecaOnDemand::Record.new(node))
+            @records.push(EndecaOnDemand::RecordSet::Record.new(node))
           end
         end
 
