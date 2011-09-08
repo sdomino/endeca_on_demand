@@ -13,13 +13,13 @@ Gem::Specification.new do |s|
   s.description = 'EndecaOnDemand will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.'
 
   s.rubyforge_project = "endeca_on_demand"
-  
-  s.add_dependency 'nokogiri'
-
-  s.add_development_dependency 'rspec'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
+
+  s.add_development_dependency 'rspec'
+  
+  s.add_dependency 'nokogiri'
 end

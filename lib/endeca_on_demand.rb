@@ -10,22 +10,26 @@ require 'uri'
 class EndecaOnDemand
   
   def initialize(host, options)
-    @body = Builder::XmlMarkup.new(:indent => 2)
+    unless host.blank?
+      @body = Builder::XmlMarkup.new(:indent => 2)
 
-    #
-    set_host(host)
-    
-    #
-    options.each do |key, value|
-      self.send(key.to_sym, value) unless value.empty?
-    end
-    
-    #
-    send_request
-    
-    self.instance_variables.each do |instance_variable|
-      # puts "VARS: #{instance_variable}"
-      # self.class_eval("attr_reader :#{instance_variable}")
+      #
+      set_host(host)
+      
+      #
+      options.each do |key, value|
+        self.send(key.to_sym, value) unless value.empty?
+      end
+      
+      #
+      send_request
+      
+      self.instance_variables.each do |instance_variable|
+        # puts "VARS: #{instance_variable}"
+        # self.class_eval("attr_reader :#{instance_variable}")
+      end
+    else
+      puts "Unable to continue... Make sure \"#{host}\" is a valid thanxmedia host."
     end
   end
   
@@ -34,7 +38,7 @@ class EndecaOnDemand
     attr_reader :breadcrumbs, :filtercrumbs
     attr_reader :dimensions
     attr_reader :rules
-    attr_reader :searchs, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
+    attr_reader :searches, :matchedrecordcount, :matchedmode, :applied_search_adjustments, :suggested_search_adjustments
     attr_reader :selected_dimension_value_ids
   
     ## DEBUG
@@ -81,7 +85,6 @@ class EndecaOnDemand
     
     build_records
     build_breadcrumbs
-    build_filtercrumbs
     build_dimensions
     build_business_rules
     build_applied_filters
@@ -259,7 +262,7 @@ class EndecaOnDemand
 
       # Builds an array of SEARCH REPORTS
       unless @response.xpath("//AppliedFilters//SearchReports").nil?
-        @searchs = []
+        @searches = []
     
         @matchedrecordcount             = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedrecordcount")
         @matchedmode                    = @response.xpath("//AppliedFilters//SearchReports//SearchReport//matchedmode")
@@ -267,7 +270,7 @@ class EndecaOnDemand
         @applied_search_adjustments     = @response.xpath("//AppliedFilters//SearchReports//SearchReport//AppliedSearchAdjustments")
         @suggested_search_adjustments   = @response.xpath("//AppliedFilters//SearchReports//SearchReport//SuggestedSearchAdjustments")
     
-        @searchs.push(EndecaOnDemand::Search.new(@response.xpath("//AppliedFilters//SearchReports//SearchReport//Search")))
+        @searches.push(EndecaOnDemand::Search.new(@response.xpath("//AppliedFilters//SearchReports//SearchReport//Search")))
       else
         puts 'There are no search reports with this response!'
       end
