@@ -116,12 +116,10 @@ Each object will then have associated instance variables exposed that will allow
 ---
 
 === TODO
-* [X]More detail on breadcrumbs (and their suggested use as left nav filters)
-* Build in support for filters
 * Add tests
+* Build in support for filters
 * I don't have all the possible advanced parameters, so for now it only handles the default 'AggregationKey'
 * Search needs some more testing. Currently its only been setup with a basic search, so I'm not aware of what additional parameters might be coming in, and how I may need to handle them
-* [X]Review the classes and create any additional classes that might be useful where only an instance variable currently exists
 * I would love it if this could server for both XML and JSON (and whatever additional formats they offer)
 ---
 
