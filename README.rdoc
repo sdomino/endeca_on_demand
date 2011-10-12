@@ -1,9 +1,5 @@
 == EndecaOnDemand
--
---
----
 ----
------
 
 This Endeca On-Demand Web API gem will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
@@ -22,6 +18,7 @@ NOTE: Due to the implementation specific requirements used while creating this g
 ---
 
 === Install
+----
 
 ==== Rails
 
@@ -33,11 +30,15 @@ Then bundle install:
 
  bundle install
 
+
 ==== Non Rails
 
  gem install endeca_on_demand
 
+---
+
 === Usage
+----
 
 EndecaOnDemand constructs an XML query to send to a hosted Endeca On-Demand Cluster, via a query string:
 NOTE: This is a complete example. Any unneeded option should not be included in the query-string
@@ -113,12 +114,18 @@ Each object will then have associated instance variables exposed that will allow
   - @endeca.records.each do |record|
     puts "----- RECORD NAME: #{record.p_name}"
   
+---
+
 === F.A.Q
+----
 
 * Q: I'm getting a response error saying something about multiple values for model Category
 * A: You are most likely trying to pass a CategoryId (CID) with DimensionValueId(s) (DVID) that don't match. The DVIDs must belong to the category passed as the CID.
 
+---
+
 === TODO
+----
 
 * [X] More detail on breadcrumbs (and their suggested use as left nav filters)
 * Build in support for filters
@@ -128,10 +135,16 @@ Each object will then have associated instance variables exposed that will allow
 * [X] Review the classes and create any additional classes that might be useful where only an instance variable currently exists
 * I would love it if this could server for both XML and JSON (and whatever additional formats they offer)
 
+---
+
 === CONTACT
+----
 
 Please contact me with any question, bugs, additions, suggestions, etc.
 
+---
+
 === Copyright
+----
 
 Copyright (c) 2011 Steve Domino. See LICENSE.txt for further details
