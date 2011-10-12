@@ -2,7 +2,11 @@
 
 This Endeca On-Demand Web API gem will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
-NOTE: There are aspects of this that I am unable to test simply because the implementation I used to create it wasn't using all available options. Please, if you run into issues let me know so I can add anything thats missing, or feel free to add it yourself.
+NOTE: Due to the implementation specific requirements used while creating this gem, I know there are missing features. If you find issues, or can provide me with any specifics about your implementation, I can add more support.
+What I would like to see:
+* Information reguarding the JSON equivelent of this implementation so I can add JSON support
+* Information reguarding filters, to enhance this functionality
+* Additional advanced parameters
 
 === Features
 
@@ -111,16 +115,17 @@ Each object will then have associated instance variables exposed that will allow
 
 === TODO
 
-* [X]More detail on breadcrumbs (and their suggested use as left nav filters)
+* [X] More detail on breadcrumbs (and their suggested use as left nav filters)
 * Build in support for filters
 * Add tests
 * I don't have all the possible advanced parameters, so for now it only handles the default 'AggregationKey'
 * Search needs some more testing. Currently its only been setup with a basic search, so I'm not aware of what additional parameters might be coming in, and how I may need to handle them
-* [X]Review the classes and create any additional classes that might be useful where only an instance variable currently exists
+* [X] Review the classes and create any additional classes that might be useful where only an instance variable currently exists
+* I would love it if this could server for both XML and JSON (and whatever additional formats they offer)
 
 === CONTACT
 
-Please contact me with any question, bugs, suggestions, etc.
+Please contact me with any question, bugs, additions, suggestions, etc.
 
 === Copyright
 
