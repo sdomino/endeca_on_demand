@@ -1,18 +1,25 @@
 == EndecaOnDemand
+-
+--
+---
+----
+-----
 
 This Endeca On-Demand Web API gem will take a query-string and construct an XML query and send it to an hosted Endeca On-Demand Cluster. It will then parse the response and expose an API for using the response data.
 
 NOTE: Due to the implementation specific requirements used while creating this gem, I know there are missing features. If you find issues, or can provide me with any specifics about your implementation, I can add more support.
-What I would like to see:
+
+=== What I would like to see:
 * Information reguarding the JSON equivelent of this implementation so I can add JSON support
 * Information reguarding filters, to enhance this functionality
 * Additional advanced parameters
 
 === Features
-
 * Provides an easy way for you to use the Thanx Media, Endeca On-Demand Web API
 * Builds an XML query from a query-string, formatted for the Endeca On-Demand Service
 * Handles the Endeca On-Demand response XML and exposes methods to use response data
+
+---
 
 === Install
 
@@ -25,8 +32,6 @@ Add this line to your Gemfile:
 Then bundle install:
 
  bundle install
-
----
 
 ==== Non Rails
 
