@@ -14,12 +14,9 @@ NOTE: Due to the implementation specific requirements used while creating this g
 * Provides an easy way for you to use the Thanx Media, Endeca On-Demand Web API
 * Builds an XML query from a query-string, formatted for the Endeca On-Demand Service
 * Handles the Endeca On-Demand response XML and exposes methods to use response data
-
 ---
 
 === Install
-----
-
 ==== Rails
 
 Add this line to your Gemfile:
@@ -38,8 +35,6 @@ Then bundle install:
 ---
 
 === Usage
-----
-
 EndecaOnDemand constructs an XML query to send to a hosted Endeca On-Demand Cluster, via a query string:
 NOTE: This is a complete example. Any unneeded option should not be included in the query-string
 
@@ -117,16 +112,11 @@ Each object will then have associated instance variables exposed that will allow
 ---
 
 === F.A.Q
-----
-
 * Q: I'm getting a response error saying something about multiple values for model Category
 * A: You are most likely trying to pass a CategoryId (CID) with DimensionValueId(s) (DVID) that don't match. The DVIDs must belong to the category passed as the CID.
-
 ---
 
 === TODO
-----
-
 * [X] More detail on breadcrumbs (and their suggested use as left nav filters)
 * Build in support for filters
 * Add tests
@@ -134,17 +124,11 @@ Each object will then have associated instance variables exposed that will allow
 * Search needs some more testing. Currently its only been setup with a basic search, so I'm not aware of what additional parameters might be coming in, and how I may need to handle them
 * [X] Review the classes and create any additional classes that might be useful where only an instance variable currently exists
 * I would love it if this could server for both XML and JSON (and whatever additional formats they offer)
-
 ---
 
 === CONTACT
-----
-
 Please contact me with any question, bugs, additions, suggestions, etc.
-
 ---
 
 === Copyright
-----
-
 Copyright (c) 2011 Steve Domino. See LICENSE.txt for further details
