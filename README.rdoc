@@ -10,7 +10,7 @@ This Endeca On-Demand Web API gem will take a query-string and construct an XML 
 
 NOTE: Due to the implementation specific requirements used while creating this gem, I know there are missing features. If you find issues, or can provide me with any specifics about your implementation, I can add more support.
 
-=== What I would like to see:
+==== What I would like to see:
 * Information reguarding the JSON equivelent of this implementation so I can add JSON support
 * Information reguarding filters, to enhance this functionality
 * Additional advanced parameters
