@@ -71,9 +71,10 @@ class EndecaOnDemand
     end
     
     begin
-      @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
-     
-      @response = Nokogiri::XML(@raw_response)
+      # ask Domino what this is?
+      # @request, @raw_response = @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
+
+      @response = Nokogiri::XML(fetch_response.body)
 
       build_records
       build_breadcrumbs
@@ -104,6 +105,10 @@ class EndecaOnDemand
     @base = options
   end
   
+  def fetch_response
+    @http.post(@uri.path, @query.target!, 'Content-type' => 'application/xml')
+  end
+
   ## BUILD REQUEST BODY
   
   # Adds dimension_value_id_navigation to the request via one or more DimensionValueIds (DVID).
