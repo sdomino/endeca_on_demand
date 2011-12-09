@@ -15,6 +15,14 @@ class EndecaOnDemand::Response < EndecaOnDemand::Proxy
 
   ##
 
+  ## associations ##
+
+  def records_set
+    @records_set ||= EndecaOnDemand::Response::RecordsSet.new(self, xml.root.xpath('/Final/RecordsSet'))
+  end
+
+  ##
+
   ## data ##
 
   def xml

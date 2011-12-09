@@ -6,7 +6,11 @@ class EndecaOnDemand::Proxy
       method =~ /(^__|^send$|^object_id$|^extend$|^respond_to\?$|^tap$|^inspect$|^pretty_)/
   end
 
-  attr_accessor :target
+  attr_accessor :xml
+
+  def inspect
+    respond_to?(:inspection) ? "#<#{self.class.name} #{inspection * ', '}>" : super
+  end
 
   # def inspect
   #   inspection = []
@@ -22,7 +26,7 @@ class EndecaOnDemand::Proxy
   # @param [ String, Symbol ] name The name of the method.
   # @param [ Array ] *args The arguments passed to the method.
   def method_missing(name, *args, &block)
-    target.send(name, *args, &block)
+    xml.send(name, *args, &block)
   end
 
   # def method_missing(method, *args, &block)

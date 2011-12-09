@@ -2,7 +2,7 @@ require 'active_support/core_ext/hash'
 
 require 'endeca_on_demand/proxy'
 require 'endeca_on_demand/query'
-require 'endeca_on_demand/record_set'
+require 'endeca_on_demand/response'
 
 Dir["#{File.dirname(__FILE__)}/endeca_on_demand/**/*"].each {|file| require(file)}
 

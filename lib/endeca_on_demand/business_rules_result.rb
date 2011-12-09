@@ -1,7 +1,7 @@
 class EndecaOnDemand::BusinessRulesResult < EndecaOnDemand::Proxy
 
   require 'endeca_on_demand/business_rules_result/property'
-  require 'endeca_on_demand/record_set/record'
+  # require 'endeca_on_demand/record_set/record'
   
   attr_reader :properties
   
