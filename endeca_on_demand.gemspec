@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'builder'
   s.add_dependency 'activesupport', '~> 3.1'
   s.add_dependency 'i18n'
+  s.add_dependency 'facets'
 end
