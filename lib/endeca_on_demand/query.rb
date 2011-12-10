@@ -2,7 +2,7 @@ class EndecaOnDemand::Query
 
   include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :uri, :xml, :errors, :options, :response ]; end
+  def inspect_attributes; [ :uri, :xml, :errors, :options ]; end
 
   ## fields ##
 
