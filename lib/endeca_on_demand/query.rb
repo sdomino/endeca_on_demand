@@ -9,7 +9,7 @@ class EndecaOnDemand::Query
   attr_reader :body, :client, :errors, :http, :options, :response, :uri, :xml
 
   def initialize(client, options = {})
-    @client, @options = client, options.dup.with_indifferent_access
+    @client, @options = client, options.dup.recurse(&:symbolize_keys)
 
     process_options!
   end
@@ -77,11 +77,11 @@ class EndecaOnDemand::Query
   ### data ###
 
   def flags
-    @flags ||= options[:flags] = (options[:flags] || {}).inject({}.with_indifferent_access) do |hash,(key,value)|
+    @flags ||= options[:flags] = (options[:flags] || {}).inject({}) do |hash,(key,value)|
         hash.tap do
           hash[key.to_s.underscore] = value
         end
-      end
+      end.symbolize_keys
   end
 
   def searches
@@ -109,11 +109,11 @@ class EndecaOnDemand::Query
   end
 
   def advanced_parameters
-    @advanced_parameters ||= options[:advanced] = (options[:advanced] || {}).inject({}.with_indifferent_access) do |hash,(key,value)|
+    @advanced_parameters ||= options[:advanced] = (options[:advanced] || {}).inject({}) do |hash,(key,value)|
         hash.tap do
           hash[key.to_s.underscore] = value
         end
-      end
+      end.symbolize_keys
   end
 
   ###
@@ -132,8 +132,8 @@ class EndecaOnDemand::Query
     xml.tag!(:Searches) do
       searches.each do |key,term|
         xml.tag!(:Search) do
-          xml.tag!('search-key',  key)
-          xml.tag!('search-term', term)
+          xml.tag!('search-key',  key.to_s)
+          xml.tag!('search-term', term.to_s)
         end
       end
     end
@@ -160,7 +160,7 @@ class EndecaOnDemand::Query
     xml.tag!(:Sorts) do
       sorts.each do |key,direction|
         xml.tag!(:Sort) do
-          xml.tag!('sort-key',       key)
+          xml.tag!('sort-key',       key.to_s)
           xml.tag!('sort-direction', direction.to_s.capitalize)
         end
       end
@@ -178,8 +178,16 @@ class EndecaOnDemand::Query
   end
 
   def process_options!
-    default_options = client.default_options[:query] || {}
-    @options = default_options.dup.merge(options)
+    new_options = (client.default_options[:query] || {}).dup
+
+    (new_options[:flags]      ||= {}).merge!(options[:flags]    || {}).recurse(&:symbolize_keys) if options[:flags].present?
+    (new_options[:paging]     ||= {}).merge!(options[:paging]   || {}).recurse(&:symbolize_keys) if options[:paging].present?
+    (new_options[:searches]   ||= {}).merge!(options[:searches] || {}).recurse(&:symbolize_keys) if options[:searches].present?
+    (new_options[:sorts]      ||= {}).merge!(options[:sorts]    || {}).recurse(&:symbolize_keys) if options[:sorts].present?
+    (new_options[:dimensions] = [*new_options[:dimensions]]).concat [*options[:dimensions]]      if options[:dimensions].present?
+    new_options[:category]    = options[:category] if options[:category].present?
+
+    @options = new_options
   end
 
   ##

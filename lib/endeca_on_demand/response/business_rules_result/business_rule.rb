@@ -35,11 +35,11 @@ class EndecaOnDemand::Response::BusinessRulesResult::BusinessRule < EndecaOnDema
   ## data ##
 
   def options
-    xml.xpath('child::node()[not(local-name() = "properties" or local-name() = "RecordsSet")]').inject({}.with_indifferent_access) do |hash,child|
+    xml.xpath('child::node()[not(local-name() = "properties" or local-name() = "RecordsSet")]').inject({}) do |hash,child|
       hash.tap do
         hash[child.name] = child.content
       end
-    end
+    end.symbolize_keys
   end
 
   ##
