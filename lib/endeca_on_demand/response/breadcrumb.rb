@@ -7,6 +7,7 @@ class EndecaOnDemand::Response::Breadcrumb < EndecaOnDemand::Proxy
   ## fields ##
 
   attr_reader :response
+  attr_accessor :breads
 
   def initialize(response, xml)
     @response, @xml = response, xml
@@ -17,10 +18,6 @@ class EndecaOnDemand::Response::Breadcrumb < EndecaOnDemand::Proxy
   def class
     EndecaOnDemand::Response::Breadcrumb
   end
-
-  # def inspection
-  #   [ "breads: #{breads.inspect}" ]
-  # end
 
   ##
 

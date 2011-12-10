@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash'
+require 'facets/hash/recurse'
 
 require 'endeca_on_demand/pp'
 require 'endeca_on_demand/proxy'

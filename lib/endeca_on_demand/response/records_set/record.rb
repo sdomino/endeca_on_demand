@@ -10,6 +10,8 @@ class EndecaOnDemand::Response::RecordsSet::Record < EndecaOnDemand::Proxy
 
   def initialize(records_set, xml)
     @records_set, @xml = records_set, xml
+
+    properties
   end
 
   ## override proxy ##
@@ -35,7 +37,7 @@ class EndecaOnDemand::Response::RecordsSet::Record < EndecaOnDemand::Proxy
   end
 
   def serializable_hash
-    properties.inject({}.with_indifferent_access) { |hash,property| hash.tap { hash[property.name] = property } }
+    properties.inject({}) { |hash,property| hash.tap { hash[property.name] = property } }.symbolize_keys
   end
   alias :to_hash :serializable_hash
 
@@ -45,9 +47,11 @@ class EndecaOnDemand::Response::RecordsSet::Record < EndecaOnDemand::Proxy
 
   def method_missing(method, *args, &block)
     if @properties.present? and (property = properties.where(label: method.to_s).first || properties.where(name: method.to_s).first).present?
-      return property
+      return property.value
     end
     super(method, *args, &block)
+  rescue NoMethodError
+    ''
   end
 
 end

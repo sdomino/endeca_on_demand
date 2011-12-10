@@ -23,11 +23,11 @@ class EndecaOnDemand::Response::AppliedFilters::SearchReport::Search < EndecaOnD
   ## data ##
 
   def options
-    @options ||= xml.children.inject({}.with_indifferent_access) do |hash,child|
-      hash.tap do
-        hash[child.name] = child.content
-      end
-    end
+    @options ||= xml.children.inject({}) do |hash,child|
+        hash.tap do
+          hash[child.name] = child.content
+        end
+      end.symbolize_keys
   end
 
   ##
