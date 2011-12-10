@@ -24,6 +24,6 @@ Gem::Specification.new do |s|
   
   s.add_dependency 'nokogiri'
   s.add_dependency 'builder'
-  s.add_dependency 'activesupport'
+  s.add_dependency 'activesupport', '~> 3.1'
   s.add_dependency 'i18n'
 end

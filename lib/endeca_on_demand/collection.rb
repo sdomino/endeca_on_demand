@@ -2,12 +2,17 @@ class EndecaOnDemand::Collection < EndecaOnDemand::Proxy
 
   attr_reader :klass, :target
 
-  def initialize(klass, target)
+  def initialize(klass, target, mapping = nil)
     @klass, @target = klass, target
+    @target = target.map { |object| @klass.new(mapping, object) } if mapping.present?
     extend klass.collection_class if klass.respond_to?(:collection_class)
   end
 
   ## override proxy ##
+
+  def class
+    EndecaOnDemand::Collection
+  end
 
   def inspect
     target.to_a.inspect

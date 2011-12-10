@@ -1,14 +1,17 @@
 class EndecaOnDemand::Query
 
+  include EndecaOnDemand::PP
+
+  def inspect_attributes; [ :uri, :xml, :errors, :options, :response ]; end
+
   ## fields ##
 
-  attr_reader :body, :client, :document, :errors, :http, :options, :uri, :xml
+  attr_reader :body, :client, :errors, :http, :options, :response, :uri, :xml
 
   def initialize(client, options = {})
     @client, @options = client, options.dup.with_indifferent_access
 
-  rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, OpenURI::HTTPError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, Nokogiri::XML::SyntaxError => error
-    @errors = error
+    process_options!
   end
 
   ## associations ##
@@ -27,6 +30,10 @@ class EndecaOnDemand::Query
 
   def uri
     @uri ||= URI.parse(client.api)
+  end
+
+  def xml
+    @xml ||= Nokogiri::XML(body) { |config| config.strict.noblanks }
   end
 
   ##
@@ -111,6 +118,8 @@ class EndecaOnDemand::Query
 
   ###
 
+  protected
+
   def Flags(xml)
     return if flags.blank?
     flags.each do |flag,value|
@@ -166,6 +175,11 @@ class EndecaOnDemand::Query
 
   def AdvancedParameters(xml)
 
+  end
+
+  def process_options!
+    default_options = client.default_options[:query] || {}
+    @options = default_options.dup.merge(options)
   end
 
   ##

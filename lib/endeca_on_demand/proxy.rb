@@ -8,9 +8,32 @@ class EndecaOnDemand::Proxy
 
   attr_accessor :xml
 
-  def inspect
-    respond_to?(:inspection) ? "#<#{self.class.name} #{inspection * ', '}>" : super
+  # def inspect
+  #   respond_to?(:inspection) ?
+  #     "#<#{self.class.name} #{inspection.kind_of?(Hash) ? inspection.inspect : (inspection * ', ')}>" :
+  #     super
+  # end
+
+  def inspect # :nodoc:
+    return super if not respond_to?(:inspect_attributes) or inspect_attributes.blank?
+    attributes = inspect_attributes.reject { |x|
+      begin
+        attribute = send x
+        attribute.blank?
+      rescue NoMethodError
+        true
+      end
+    }.map { |attribute|
+      "#{attribute.to_s.sub(/_\w+/, 's')}=#{send(attribute).inspect}"
+    }.join ' '
+    "#<#{self.class.name}:#{sprintf("0x%x", object_id)} #{attributes}>"
   end
+
+  # def pretty_inspect
+  #   respond_to?(:inspection) ?
+  #     "#(#{self.class.name} {\n  #{inspection.pretty_inspect}\n})" :
+  #     super
+  # end
 
   # def inspect
   #   inspection = []

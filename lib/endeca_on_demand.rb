@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash'
 
+require 'endeca_on_demand/pp'
 require 'endeca_on_demand/proxy'
 require 'endeca_on_demand/query'
 require 'endeca_on_demand/response'

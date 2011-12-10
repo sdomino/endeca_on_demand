@@ -1,5 +1,9 @@
 class EndecaOnDemand::Response < EndecaOnDemand::Proxy
 
+  include EndecaOnDemand::PP
+
+  def inspect_attributes; [ :applied_filters, :breadcrumbs, :business_rules_result, :dimensions, :records_set ]; end
+
   ## fields ##
   attr_reader :errors, :query, :result, :xml
 
@@ -18,7 +22,23 @@ class EndecaOnDemand::Response < EndecaOnDemand::Proxy
   ## associations ##
 
   def records_set
-    @records_set ||= EndecaOnDemand::Response::RecordsSet.new(self, xml.root.xpath('/Final/RecordsSet'))
+    @records_set ||= EndecaOnDemand::Response::RecordsSet.new(self, xml.root.children.css('RecordsSet'))
+  end
+
+  def breadcrumbs
+    @breadcrumbs ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::Breadcrumb, xml.root.children.css('Breadcrumbs > Breads'), self)
+  end
+
+  def dimensions
+    @dimensions ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::Dimension, xml.root.children.css('Dimensions > Dimension'), self)
+  end
+
+  def business_rules_result
+    @business_rules_result ||= EndecaOnDemand::Response::BusinessRulesResult.new(self, xml.root.children.css('BusinessRulesResult > BusinessRules'))
+  end
+
+  def applied_filters
+    @applied_filters ||= EndecaOnDemand::Response::AppliedFilters.new(self, xml.root.children.css('AppliedFilters'))
   end
 
   ##

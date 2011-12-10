@@ -1,23 +1,15 @@
 class EndecaOnDemand::Response::RecordsSet < EndecaOnDemand::Proxy
 
+  include EndecaOnDemand::PP
+
+  def inspect_attributes; [ :options, :records ]; end
+
   ## fields ##
 
-  attr_reader :records, :response
+  attr_reader :parent, :records
 
-  def initialize(response, xml)
-    @response, @xml = response, xml
-    # @records = []
-
-    # record_set.children.each do |node|
-    #   if node.name == "Record"
-    #     node.xpath("./Record").each do |node|
-    #       @records.push(EndecaOnDemand::RecordSet::Record.new(node))
-    #     end
-    #   else
-    #     self.instance_variable_set(:"@#{node.name.downcase}", node.content)
-    #     self.class_eval("attr_reader :#{node.name.downcase}")
-    #   end
-    # end
+  def initialize(parent, xml)
+    @parent, @xml = parent, xml
   end
 
   ## override proxy ##
@@ -26,18 +18,12 @@ class EndecaOnDemand::Response::RecordsSet < EndecaOnDemand::Proxy
     EndecaOnDemand::Response::RecordsSet
   end
 
-  def inspection
-    options.sort_by(&:first).map { |k,v| "#{k}: #{v.inspect}" }
-  end
-
   ##
 
   ## associations ##
 
   def records
-    @records ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::RecordsSet::Record, xml.xpath('//Record').map do |record|
-      EndecaOnDemand::Response::RecordsSet::Record.new(self, record)
-    end)
+    @records ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::RecordsSet::Record, xml.children.css('Record'), self)
   end
 
   ##
