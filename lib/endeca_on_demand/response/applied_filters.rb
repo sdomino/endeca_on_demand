@@ -1,39 +1,47 @@
-class EndecaOnDemand::Response::AppliedFilters < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class AppliedFilters < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+      include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :keyword_redirects, :search_reports, :selected_dimension_value_ids ]; end
+      def inspect_attributes; [ :keyword_redirects, :search_reports, :selected_dimension_value_ids ]; end
 
-  ## fields ##
+      ## fields ##
 
-  attr_reader :response, :search_reports
+      attr_reader :response, :search_reports
 
-  def initialize(response, xml)
-    @response, @xml = response, xml
+      def initialize(response, xml)
+        @response, @xml = response, xml
+      end
+
+      ## override proxy ##
+
+      def class
+        EndecaOnDemand::Response::AppliedFilters
+      end
+
+      ##
+
+      ## associations ##
+
+      def search_reports
+        @search_reports ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::SearchReport, xml.children.css('SearchReports > SearchReport'), self)
+      end
+
+      def selected_dimension_value_ids
+        @selected_dimension_value_ids ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId, xml.children.css('SelectedDimensionValueIds > DimensionValueId'), self)
+      end
+
+      def keyword_redirects
+        @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::KeywordRedirect, xml.children.css('KeywordRedirects'), self)
+      end
+
+      ##
+      
+    end
   end
-
-  ## override proxy ##
-
-  def class
-    EndecaOnDemand::Response::AppliedFilters
-  end
-
-  ##
-
-  ## associations ##
-
-  def search_reports
-    @search_reports ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::SearchReport, xml.children.css('SearchReports > SearchReport'), self)
-  end
-
-  def selected_dimension_value_ids
-    @selected_dimension_value_ids ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId, xml.children.css('SelectedDimensionValueIds > DimensionValueId'), self)
-  end
-
-  def keyword_redirects
-    @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::KeywordRedirect, xml.children.css('KeywordRedirects'), self)
-  end
-
-  ##
-  
 end
+
+require 'endeca_on_demand/response/applied_filters/keyword_redirect'
+require 'endeca_on_demand/response/applied_filters/search_report'
+require 'endeca_on_demand/response/applied_filters/selected_dimension_value_id'
