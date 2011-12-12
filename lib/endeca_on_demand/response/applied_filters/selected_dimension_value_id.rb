@@ -1,32 +1,38 @@
-class EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class AppliedFilters
+      class SelectedDimensionValueId < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+        include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :value ]; end
+        def inspect_attributes; [ :value ]; end
 
-  ## fields ##
+        ## fields ##
 
-  attr_reader :applied_filters
+        attr_reader :applied_filters
 
-  def initialize(applied_filters, xml)
-    @applied_filters, @xml = applied_filters, xml
+        def initialize(applied_filters, xml)
+          @applied_filters, @xml = applied_filters, xml
+        end
+
+        ## override proxy ##
+
+        def class
+          EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId
+        end
+
+        ##
+
+        ## data ##
+
+        def value
+          xml.content
+        end
+        alias :to_s :value
+
+        ##
+        
+      end
+    end
   end
-
-  ## override proxy ##
-
-  def class
-    EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId
-  end
-
-  ##
-
-  ## data ##
-
-  def to_s
-    xml.content
-  end
-  alias :value :to_s
-
-  ##
-  
 end

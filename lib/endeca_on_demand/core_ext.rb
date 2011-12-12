@@ -1,0 +1,1 @@
+require 'endeca_on_demand/core_ext/hash'
