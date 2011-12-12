@@ -1,50 +1,43 @@
-class EndecaOnDemand::Response::Dimension::DimensionValue < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class Dimension
+      class DimensionValue < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+        include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :options ]; end
+        def inspect_attributes; [ :options ]; end
 
-  ## fields ##
+        ## fields ##
 
-  attr_reader :dimension, :options
+        attr_reader :dimension, :options
 
-  def initialize(dimension, xml)
-    @dimension, @xml = dimension, xml
-  end
+        def initialize(dimension, xml)
+          @dimension, @xml = dimension, xml
 
-  ## override proxy ##
+          define_getters(:options)
+        end
 
-  def class
-    EndecaOnDemand::Response::Dimension::DimensionValue
-  end
+        ## override proxy ##
 
-  # def inspection
-  #   options.sort_by(&:first).map { |k,v| "#{k}: #{v.inspect}" }
-  # end
+        def class
+          EndecaOnDemand::Response::Dimension::DimensionValue
+        end
 
-  def inspection
-    Hash[*options.sort_by(&:first).flatten]
-  end
+        ##
 
-  ##
+        ## data ##
 
-  ## data ##
+        def options
+          @options ||= xml.children.inject({}) do |hash,child|
+              hash.tap do
+                hash[child.name] = child.content
+              end
+            end.symbolize_keys
+        end
 
-  def options
-    xml.children.inject({}) do |hash,child|
-      hash.tap do
-        hash[child.name] = child.content
+        ##
+
       end
-    end.symbolize_keys
+    end
   end
-
-  ##
-
-  protected
-
-  def method_missing(method, *args, &block)
-    return options[method] if options.has_key?(method)
-    super(method, *args, &block)
-  end
-
 end

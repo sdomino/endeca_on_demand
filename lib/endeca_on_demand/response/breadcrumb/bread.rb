@@ -1,42 +1,43 @@
-class EndecaOnDemand::Response::Breadcrumb::Bread < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class Breadcrumb
+      class Bread < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+        include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :options ]; end
+        def inspect_attributes; [ :options ]; end
 
-  ## fields ##
+        ## fields ##
 
-  attr_reader :breadcrumb
+        attr_reader :breadcrumb
 
-  def initialize(breadcrumb, xml)
-    @breadcrumb, @xml = breadcrumb, xml
-  end
+        def initialize(breadcrumb, xml)
+          @breadcrumb, @xml = breadcrumb, xml
 
-  ## override proxy ##
+          define_getters(:options)
+        end
 
-  def class
-    EndecaOnDemand::Response::Breadcrumb::Bread
-  end
+        ## override proxy ##
 
-  ##
+        def class
+          EndecaOnDemand::Response::Breadcrumb::Bread
+        end
 
-  ## data ##
+        ##
 
-  def options
-    xml.children.inject({}) do |hash,child|
-      hash.tap do
-        hash[child.name] = child.content
+        ## data ##
+
+        def options
+          @options ||= xml.children.inject({}) do |hash,child|
+              hash.tap do
+                hash[child.name] = child.content
+              end
+            end.symbolize_keys
+        end
+
+        ##
+        
       end
-    end.symbolize_keys
+    end
   end
-
-  ##
-
-  protected
-
-  def method_missing(method, *args, &block)
-    return options[method] if options.has_key?(method)
-    super(method, *args, &block)
-  end
-  
 end

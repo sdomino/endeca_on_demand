@@ -1,32 +1,38 @@
-class EndecaOnDemand::Response::Breadcrumb < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class Breadcrumb < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+      include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :breads ]; end
+      def inspect_attributes; [ :breads ]; end
 
-  ## fields ##
+      ## fields ##
 
-  attr_reader :response
-  attr_accessor :breads
+      attr_reader :response
+      attr_accessor :breads
 
-  def initialize(response, xml)
-    @response, @xml = response, xml
+      def initialize(response, xml)
+        @response, @xml = response, xml
+      end
+
+      ## override proxy ##
+
+      def class
+        EndecaOnDemand::Response::Breadcrumb
+      end
+
+      ##
+
+      ## associations ##
+
+      def breads
+        @breads ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::Breadcrumb::Bread, xml.children.css('Bread'), self)
+      end
+
+      ##
+      
+    end
   end
-
-  ## override proxy ##
-
-  def class
-    EndecaOnDemand::Response::Breadcrumb
-  end
-
-  ##
-
-  ## associations ##
-
-  def breads
-    @breads ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::Breadcrumb::Bread, xml.children.css('Bread'), self)
-  end
-
-  ##
-  
 end
+
+require 'endeca_on_demand/response/breadcrumb/bread'

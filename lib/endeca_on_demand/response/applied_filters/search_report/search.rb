@@ -1,42 +1,45 @@
-class EndecaOnDemand::Response::AppliedFilters::SearchReport::Search < EndecaOnDemand::Proxy
+module EndecaOnDemand
+  class Response
+    class AppliedFilters
+      class SearchReport
+        class Search < EndecaOnDemand::Proxy
 
-  include EndecaOnDemand::PP
+          include EndecaOnDemand::PP
 
-  def inspect_attributes; [ :options ]; end
+          def inspect_attributes; [ :options ]; end
 
-  ## fields ##
+          ## fields ##
 
-  attr_reader :search_report
+          attr_reader :search_report
 
-  def initialize(search_report, xml)
-    @search_report, @xml = search_report, xml
-  end
+          def initialize(search_report, xml)
+            @search_report, @xml = search_report, xml
 
-  ## override proxy ##
+            define_getters(:options)
+          end
 
-  def class
-    EndecaOnDemand::Response::AppliedFilters::SearchReport::Search
-  end
+          ## override proxy ##
 
-  ##
+          def class
+            EndecaOnDemand::Response::AppliedFilters::SearchReport::Search
+          end
 
-  ## data ##
+          ##
 
-  def options
-    @options ||= xml.children.inject({}) do |hash,child|
-        hash.tap do
-          hash[child.name] = child.content
+          ## data ##
+
+          def options
+            @options ||= xml.children.inject({}) do |hash,child|
+                hash.tap do
+                  hash[child.name] = child.content
+                end
+              end.symbolize_keys
+          end
+
+          ##
+
         end
-      end.symbolize_keys
+      end
+    end
   end
-
-  ##
-
-  protected
-
-  def method_missing(method, *args, &block)
-    return options[method] if @options.present? and options.has_key?(method)
-    super(method, *args, &block)
-  end
-
 end

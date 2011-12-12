@@ -1,18 +1,19 @@
 require 'active_support/core_ext/hash'
-require 'facets/hash/recurse'
-
-require 'endeca_on_demand/pp'
-require 'endeca_on_demand/proxy'
-require 'endeca_on_demand/query'
-require 'endeca_on_demand/response'
-
-Dir["#{File.dirname(__FILE__)}/endeca_on_demand/**/*"].each {|file| require(file)}
 
 require 'builder'
 require 'nokogiri'
 require 'net/http'
 require 'uri'
-require 'open-uri'
+
+require 'endeca_on_demand/core_ext'
+require 'endeca_on_demand/pp'
+require 'endeca_on_demand/proxy'
+
+require 'endeca_on_demand/client'
+require 'endeca_on_demand/collection'
+require 'endeca_on_demand/query'
+require 'endeca_on_demand/response'
+require 'endeca_on_demand/version'
 
 module EndecaOnDemand
 
