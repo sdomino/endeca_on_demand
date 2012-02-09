@@ -39,9 +39,10 @@ module EndecaOnDemand
       mod = Module.new
       extend mod
       send(lookup).keys.each do |key|
+        safe_key = key.to_s.underscore.parameterize('_')
         mod.class_eval <<-RUBY, __FILE__, __LINE__+1
 
-          def #{key}
+          def #{safe_key}
             send(#{lookup.inspect})[#{key.inspect}]
           end
 

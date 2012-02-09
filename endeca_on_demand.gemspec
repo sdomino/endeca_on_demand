@@ -22,10 +22,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-rspec'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'rspec', '~> 2.7.0'
+  s.add_development_dependency 'rspec', '~> 2.8.0'
   
   s.add_dependency 'nokogiri'
   s.add_dependency 'builder'
-  s.add_dependency 'activesupport', '~> 3.1'
+  s.add_dependency 'activesupport', '~> 3.2'
   s.add_dependency 'i18n'
 end
