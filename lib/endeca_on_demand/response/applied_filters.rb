@@ -38,6 +38,5 @@ module EndecaOnDemand
   end
 end
 
-require 'endeca_on_demand/response/applied_filters/keyword_redirect'
 require 'endeca_on_demand/response/applied_filters/search_report'
 require 'endeca_on_demand/response/applied_filters/selected_dimension_value_id'
