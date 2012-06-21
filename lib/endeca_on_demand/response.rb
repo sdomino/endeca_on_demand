@@ -3,7 +3,7 @@ module EndecaOnDemand
 
     include EndecaOnDemand::PP
 
-    def inspect_attributes; [ :applied_filters, :breadcrumbs, :business_rules_result, :dimensions, :records_set ]; end
+    def inspect_attributes; [ :applied_filters, :breadcrumbs, :business_rules_result, :dimensions, :keyword_redirects, :records_set ]; end
 
     ## fields ##
     attr_reader :errors, :query, :result, :xml
@@ -40,6 +40,10 @@ module EndecaOnDemand
 
     def applied_filters
       @applied_filters ||= EndecaOnDemand::Response::AppliedFilters.new(self, xml.root.children.css('AppliedFilters'))
+    end
+
+    def keyword_redirects
+      @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::KeywordRedirects, xml.root.children.css('KeywordRedirects'), self)
     end
 
     ##

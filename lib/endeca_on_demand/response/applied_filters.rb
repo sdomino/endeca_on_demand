@@ -4,7 +4,7 @@ module EndecaOnDemand
 
       include EndecaOnDemand::PP
 
-      def inspect_attributes; [ :keyword_redirects, :search_reports, :selected_dimension_value_ids ]; end
+      def inspect_attributes; [ :search_reports, :selected_dimension_value_ids ]; end
 
       ## fields ##
 
@@ -30,10 +30,6 @@ module EndecaOnDemand
 
       def selected_dimension_value_ids
         @selected_dimension_value_ids ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::SelectedDimensionValueId, xml.children.css('SelectedDimensionValueIds > DimensionValueId'), self)
-      end
-
-      def keyword_redirects
-        @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::AppliedFilters::KeywordRedirect, xml.children.css('KeywordRedirects'), self)
       end
 
       ##
