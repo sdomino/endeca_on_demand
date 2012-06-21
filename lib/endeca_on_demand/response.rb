@@ -43,7 +43,7 @@ module EndecaOnDemand
     end
 
     def keyword_redirects
-      @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::KeywordRedirects, xml.root.children.css('KeywordRedirects'), self)
+      @keyword_redirects ||= EndecaOnDemand::Collection.new(EndecaOnDemand::Response::KeywordRedirect, xml.root.children.css('KeywordRedirects'), self)
     end
 
     ##
